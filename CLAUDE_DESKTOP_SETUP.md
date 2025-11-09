@@ -137,7 +137,7 @@ MIRO_REFRESH_TOKEN=eyJtaXJvLm9yaWdpbiI6...
 ```json
 {
   "mcpServers": {
-    "miro": {
+    "miro-dev": {
       "command": "node",
       "args": [
         "/ABSOLUTE/PATH/TO/miro-remote-mcp/dist/index.js"
@@ -167,7 +167,7 @@ MIRO_REFRESH_TOKEN=eyJtaXJvLm9yaWdpbiI6...
 ```json
 {
   "claude.mcpServers": {
-    "miro": {
+    "miro-dev": {
       "command": "node",
       "args": [
         "/ABSOLUTE/PATH/TO/miro-remote-mcp/dist/index.js"

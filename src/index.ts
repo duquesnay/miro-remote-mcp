@@ -44,7 +44,7 @@ const miroClient = new MiroClient(oauth);
 // Create MCP server
 const server = new Server(
   {
-    name: 'miro-mcp',
+    name: 'miro-dev',
     version: '0.1.0',
   },
   {

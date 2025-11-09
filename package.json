@@ -1,5 +1,5 @@
 {
-  "name": "miro-mcp",
+  "name": "miro-dev",
   "version": "0.1.0",
   "description": "Model Context Protocol server for Miro API with OAuth2 authentication",
   "type": "module",

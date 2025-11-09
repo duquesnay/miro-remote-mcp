@@ -95,7 +95,7 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 ```json
 {
   "mcpServers": {
-    "miro": {
+    "miro-dev": {
       "command": "node",
       "args": ["/path/to/miro-mcp/dist/index.js"],
       "env": {
