@@ -4,26 +4,41 @@
  */
 import http from 'http';
 import { URL } from 'url';
-import dotenv from 'dotenv';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+import { homedir } from 'os';
 import { OAuth2Manager } from './oauth.js';
 
-dotenv.config();
+// Load credentials from config directory
+const configDir = join(homedir(), '.config', 'mcps', 'miro-dev');
+const credentialsPath = join(configDir, 'credentials.json');
+const tokensPath = join(configDir, 'tokens.json');
 
-const CLIENT_ID = process.env.MIRO_CLIENT_ID;
-const CLIENT_SECRET = process.env.MIRO_CLIENT_SECRET;
-const REDIRECT_URI = process.env.MIRO_REDIRECT_URI || 'http://localhost:3003/oauth/callback';
-const PORT = 3003;
-
-if (!CLIENT_ID || !CLIENT_SECRET) {
-  console.error('\n❌ Error: Missing required environment variables');
-  console.error('   MIRO_CLIENT_ID and MIRO_CLIENT_SECRET must be set in your .env file');
-  console.error('   See .env.example for template\n');
+let credentials: any;
+try {
+  credentials = JSON.parse(readFileSync(credentialsPath, 'utf-8'));
+  console.log(`✓ Loaded credentials from ${credentialsPath}\n`);
+} catch (error) {
+  console.error(`\n❌ Error: Could not load credentials from ${credentialsPath}`);
+  console.error('   Please create the file with the following structure:');
+  console.error('   {');
+  console.error('     "clientId": "your_client_id",');
+  console.error('     "clientSecret": "your_client_secret",');
+  console.error('     "redirectUri": "http://localhost:3003/oauth/callback"');
+  console.error('   }\n');
   process.exit(1);
 }
 
+const PORT = 3003;
+
 console.log('=== Miro OAuth2 Token Helper ===\n');
 
-const oauth = new OAuth2Manager(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI);
+const oauth = new OAuth2Manager(
+  credentials.clientId,
+  credentials.clientSecret,
+  credentials.redirectUri || 'http://localhost:3003/oauth/callback',
+  tokensPath
+);
 
 // Create a simple HTTP server to handle the OAuth callback
 const server = http.createServer(async (req, res) => {
@@ -70,21 +85,19 @@ const server = http.createServer(async (req, res) => {
       console.log('  Access Token:', tokens.access_token.substring(0, 20) + '...');
       console.log('  Refresh Token:', tokens.refresh_token.substring(0, 20) + '...');
       console.log('  Expires in:', tokens.expires_in, 'seconds');
-      console.log('\nTokens have been saved to tokens.json');
-      console.log('\nAdd these to your .env file:');
-      console.log(`MIRO_ACCESS_TOKEN=${tokens.access_token}`);
-      console.log(`MIRO_REFRESH_TOKEN=${tokens.refresh_token}`);
+      console.log(`\n✓ Tokens have been saved to ${tokensPath}`);
+      console.log('\nYou can now use the MCP server - tokens will be auto-refreshed.');
 
       res.writeHead(200, { 'Content-Type': 'text/html' });
       res.end(`
         <html>
           <body>
             <h1>✓ Authorization Successful!</h1>
-            <p>Tokens have been saved to <code>tokens.json</code></p>
+            <p>Tokens have been saved to <code>${tokensPath}</code></p>
             <p>You can close this window and return to the terminal.</p>
             <h2>Next Steps:</h2>
             <ol>
-              <li>Copy the tokens from tokens.json to your .env file</li>
+              <li>Restart Claude Desktop (if already running)</li>
               <li>Test the connection with: <code>npm test</code></li>
               <li>Start using the MCP server!</li>
             </ol>

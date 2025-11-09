@@ -5,38 +5,39 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
+import { readFileSync } from 'fs';
+import { join } from 'path';
+import { homedir } from 'os';
 import dotenv from 'dotenv';
 import { OAuth2Manager } from './oauth.js';
 import { MiroClient } from './miro-client.js';
 import { TOOL_DEFINITIONS, handleToolCall } from './tools.js';
 
-// Load environment variables
+// Load environment variables (fallback)
 dotenv.config();
 
-// Validate required environment variables
-const REQUIRED_ENV_VARS = ['MIRO_CLIENT_ID', 'MIRO_CLIENT_SECRET'];
-for (const envVar of REQUIRED_ENV_VARS) {
-  if (!process.env[envVar]) {
-    console.error(`Error: ${envVar} environment variable is required`);
-    process.exit(1);
-  }
+// Load configuration from ~/.config/mcps/miro-dev/
+const configDir = join(homedir(), '.config', 'mcps', 'miro-dev');
+const credentialsPath = join(configDir, 'credentials.json');
+const tokensPath = join(configDir, 'tokens.json');
+
+let credentials: any;
+try {
+  credentials = JSON.parse(readFileSync(credentialsPath, 'utf-8'));
+  console.error(`[MCP] Loaded credentials from ${credentialsPath}`);
+} catch (error) {
+  console.error(`[MCP] Error: Could not load credentials from ${credentialsPath}`);
+  console.error(`[MCP] Please create the file with clientId, clientSecret, and redirectUri`);
+  process.exit(1);
 }
 
-// Initialize OAuth2 manager
+// Initialize OAuth2 manager with config file paths
 const oauth = new OAuth2Manager(
-  process.env.MIRO_CLIENT_ID!,
-  process.env.MIRO_CLIENT_SECRET!,
-  process.env.MIRO_REDIRECT_URI || 'http://localhost:3000/oauth/callback',
-  process.env.TOKEN_FILE || 'tokens.json'
+  credentials.clientId,
+  credentials.clientSecret,
+  credentials.redirectUri || 'http://localhost:3003/oauth/callback',
+  tokensPath
 );
-
-// Set initial tokens if provided in environment
-if (process.env.MIRO_ACCESS_TOKEN && process.env.MIRO_REFRESH_TOKEN) {
-  await oauth.setTokens(
-    process.env.MIRO_ACCESS_TOKEN,
-    process.env.MIRO_REFRESH_TOKEN
-  );
-}
 
 // Initialize Miro client
 const miroClient = new MiroClient(oauth);
