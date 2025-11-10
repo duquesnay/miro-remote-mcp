@@ -153,6 +153,7 @@ export class MiroClient {
       height?: number;
       color?: string;
       shape?: 'square' | 'rectangle';
+      parentId?: string;
     } = {}
   ): Promise<MiroItem> {
     const payload: any = {
@@ -176,6 +177,11 @@ export class MiroClient {
       if (options.height !== undefined) payload.geometry.height = options.height;
     }
 
+    // Add parent reference if specified
+    if (options.parentId) {
+      payload.parent = { id: options.parentId };
+    }
+
     const response = await this.client.post(`/boards/${boardId}/sticky_notes`, payload);
     return response.data;
   }
@@ -193,6 +199,7 @@ export class MiroClient {
       fillColor?: string;
       borderColor?: string;
       borderWidth?: string;
+      parentId?: string;
     } = {}
   ): Promise<MiroItem> {
     // Convert named colors to hex for shapes (shapes require hex colors)
@@ -203,7 +210,7 @@ export class MiroClient {
       ? (COLOR_MAP[options.borderColor] || options.borderColor)
       : COLOR_MAP['blue'];
 
-    const response = await this.client.post(`/boards/${boardId}/shapes`, {
+    const payload: any = {
       data: {
         content,
         shape: shapeType,
@@ -222,7 +229,14 @@ export class MiroClient {
         width: options.width || 300,
         height: options.height || 150,
       },
-    });
+    };
+
+    // Add parent reference if specified
+    if (options.parentId) {
+      payload.parent = { id: options.parentId };
+    }
+
+    const response = await this.client.post(`/boards/${boardId}/shapes`, payload);
     return response.data;
   }
 
@@ -234,9 +248,10 @@ export class MiroClient {
       x?: number;
       y?: number;
       width?: number;
+      parentId?: string;
     } = {}
   ): Promise<MiroItem> {
-    const response = await this.client.post(`/boards/${boardId}/texts`, {
+    const payload: any = {
       data: {
         content,
       },
@@ -248,7 +263,14 @@ export class MiroClient {
       geometry: {
         width: options.width || 300,
       },
-    });
+    };
+
+    // Add parent reference if specified
+    if (options.parentId) {
+      payload.parent = { id: options.parentId };
+    }
+
+    const response = await this.client.post(`/boards/${boardId}/texts`, payload);
     return response.data;
   }
 

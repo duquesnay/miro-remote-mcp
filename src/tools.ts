@@ -165,6 +165,10 @@ export const TOOL_DEFINITIONS = [
           description: 'Shape type (default: square)',
           enum: ['square', 'rectangle'],
         },
+        parent_id: {
+          type: 'string',
+          description: 'Optional ID of parent frame to place this sticky note inside',
+        },
       },
       required: ['board_id', 'content'],
     },
@@ -216,6 +220,10 @@ export const TOOL_DEFINITIONS = [
           type: 'string',
           description: 'Border width (default: "2")',
         },
+        parent_id: {
+          type: 'string',
+          description: 'Optional ID of parent frame to place this shape inside',
+        },
       },
       required: ['board_id', 'content', 'shape_type'],
     },
@@ -245,6 +253,10 @@ export const TOOL_DEFINITIONS = [
         width: {
           type: 'number',
           description: 'Width in pixels (default: 300)',
+        },
+        parent_id: {
+          type: 'string',
+          description: 'Optional ID of parent frame to place this text inside',
         },
       },
       required: ['board_id', 'content'],
@@ -398,6 +410,7 @@ export async function handleToolCall(name: string, args: any, miroClient: MiroCl
           height: args.height,
           color: args.color,
           shape: args.shape,
+          parentId: args.parent_id,
         });
 
       case 'create_shape':
@@ -409,6 +422,7 @@ export async function handleToolCall(name: string, args: any, miroClient: MiroCl
           fillColor: args.fill_color,
           borderColor: args.border_color,
           borderWidth: args.border_width,
+          parentId: args.parent_id,
         });
 
       case 'create_text':
@@ -416,6 +430,7 @@ export async function handleToolCall(name: string, args: any, miroClient: MiroCl
           x: args.x,
           y: args.y,
           width: args.width,
+          parentId: args.parent_id,
         });
 
       case 'create_frame':
