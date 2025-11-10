@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { TOKEN_CONFIG } from './config.js';
 
 interface TokenData {
   access_token: string;
@@ -71,7 +72,7 @@ export class OAuth2Manager {
       const tokenData: TokenData = {
         ...response.data,
         // If expires_in is 0, treat as long-lived token (1 year)
-        expires_at: Date.now() + (response.data.expires_in || 365 * 24 * 60 * 60) * 1000,
+        expires_at: Date.now() + (response.data.expires_in || TOKEN_CONFIG.LONG_LIVED_TOKEN_SECONDS) * 1000,
       };
 
       this.tokens = tokenData;
@@ -115,7 +116,7 @@ export class OAuth2Manager {
       const tokenData: TokenData = {
         ...response.data,
         // If expires_in is 0, treat as long-lived token (1 year)
-        expires_at: Date.now() + (response.data.expires_in || 365 * 24 * 60 * 60) * 1000,
+        expires_at: Date.now() + (response.data.expires_in || TOKEN_CONFIG.LONG_LIVED_TOKEN_SECONDS) * 1000,
       };
 
       this.tokens = tokenData;
@@ -145,7 +146,7 @@ export class OAuth2Manager {
 
     // Check if token is expired or will expire in the next 5 minutes
     const expiresAt = this.tokens.expires_at || 0;
-    const shouldRefresh = Date.now() + 5 * 60 * 1000 > expiresAt;
+    const shouldRefresh = Date.now() + TOKEN_CONFIG.REFRESH_BUFFER_MS > expiresAt;
 
     // Only refresh if we have a refresh token and token is expiring
     if (shouldRefresh && this.tokens.refresh_token) {

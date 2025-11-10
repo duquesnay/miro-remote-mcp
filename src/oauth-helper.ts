@@ -5,14 +5,12 @@
 import http from 'http';
 import { URL } from 'url';
 import { readFileSync } from 'fs';
-import { join } from 'path';
-import { homedir } from 'os';
 import { OAuth2Manager } from './oauth.js';
+import { CONFIG_PATHS, OAUTH_CONFIG } from './config.js';
 
 // Load credentials from config directory
-const configDir = join(homedir(), '.config', 'mcps', 'miro-dev');
-const credentialsPath = join(configDir, 'credentials.json');
-const tokensPath = join(configDir, 'tokens.json');
+const credentialsPath = CONFIG_PATHS.credentials;
+const tokensPath = CONFIG_PATHS.tokens;
 
 let credentials: any;
 try {
@@ -29,7 +27,7 @@ try {
   process.exit(1);
 }
 
-const PORT = 3003;
+const PORT = OAUTH_CONFIG.CALLBACK_PORT;
 
 console.log('=== Miro OAuth2 Token Helper ===\n');
 

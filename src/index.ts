@@ -6,20 +6,18 @@ import {
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { readFileSync } from 'fs';
-import { join } from 'path';
-import { homedir } from 'os';
 import dotenv from 'dotenv';
 import { OAuth2Manager } from './oauth.js';
 import { MiroClient } from './miro-client.js';
 import { TOOL_DEFINITIONS, handleToolCall } from './tools.js';
+import { CONFIG_PATHS, OAUTH_CONFIG } from './config.js';
 
 // Load environment variables (fallback)
 dotenv.config();
 
 // Load configuration from ~/.config/mcps/miro-dev/
-const configDir = join(homedir(), '.config', 'mcps', 'miro-dev');
-const credentialsPath = join(configDir, 'credentials.json');
-const tokensPath = join(configDir, 'tokens.json');
+const credentialsPath = CONFIG_PATHS.credentials;
+const tokensPath = CONFIG_PATHS.tokens;
 
 let credentials: any;
 try {
@@ -35,7 +33,7 @@ try {
 const oauth = new OAuth2Manager(
   credentials.clientId,
   credentials.clientSecret,
-  credentials.redirectUri || 'http://localhost:3003/oauth/callback',
+  credentials.redirectUri || OAUTH_CONFIG.DEFAULT_REDIRECT_URI,
   tokensPath
 );
 

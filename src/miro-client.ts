@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import { OAuth2Manager } from './oauth.js';
+import { OAUTH_CONFIG, CACHE_CONFIG, MIRO_DEFAULTS, TOKEN_CONFIG } from './config.js';
 
 // Color mapping: named colors to hex (shapes require hex, sticky notes accept names)
 const COLOR_MAP: Record<string, string> = {
@@ -38,8 +39,32 @@ export interface MiroItem {
   type: string;
   data?: any;
   style?: any;
-  position?: { x: number; y: number };
-  geometry?: { width?: number; height?: number };
+  position?: {
+    x: number;
+    y: number;
+    origin?: 'center' | string;
+    relativeTo?: 'canvas_center' | string;
+  };
+  geometry?: {
+    width?: number;
+    height?: number;
+    rotation?: number;
+  };
+  createdAt?: string;
+  modifiedAt?: string;
+  createdBy?: {
+    id: string;
+    type: string;
+  };
+  modifiedBy?: {
+    id: string;
+    type: string;
+  };
+  parent?: {
+    id: string;
+    links?: any;
+  };
+  links?: any;
 }
 
 export class MiroClient {
@@ -48,19 +73,44 @@ export class MiroClient {
   private rateLimitRemaining: number = 100;
   private rateLimitReset: number = Date.now();
 
+  // Performance optimizations: Caching
+  private boardListCache: { data: MiroBoard[]; expiresAt: number } | null = null;
+  private boardCache = new Map<string, { data: MiroBoard; expiresAt: number }>();
+  private cachedToken: string | null = null;
+  private tokenExpiresAt: number = 0;
+
+  /**
+   * Helper method to resolve color names to hex codes
+   * @param colorInput Named color or hex code (optional)
+   * @param defaultColor Default color name to use if colorInput is not provided
+   * @returns Hex color code
+   */
+  private resolveColor(colorInput?: string, defaultColor: string = 'light_blue'): string {
+    if (!colorInput) {
+      return COLOR_MAP[defaultColor] || COLOR_MAP['light_blue'];
+    }
+    return COLOR_MAP[colorInput] || colorInput;
+  }
+
   constructor(oauth: OAuth2Manager) {
     this.oauth = oauth;
     this.client = axios.create({
-      baseURL: 'https://api.miro.com/v2',
+      baseURL: OAUTH_CONFIG.API_BASE_URL,
       headers: {
         'Content-Type': 'application/json',
       },
     });
 
-    // Add request interceptor to inject auth token
+    // Add request interceptor to inject auth token (with caching)
     this.client.interceptors.request.use(async (config) => {
-      const token = await this.oauth.getValidAccessToken();
-      config.headers.Authorization = `Bearer ${token}`;
+      const now = Date.now();
+      // Use cached token if valid (5-minute buffer before expiry)
+      if (!this.cachedToken || this.tokenExpiresAt <= now + TOKEN_CONFIG.REFRESH_BUFFER_MS) {
+        this.cachedToken = await this.oauth.getValidAccessToken();
+        // Assume 1-hour token validity (conservative estimate)
+        this.tokenExpiresAt = now + TOKEN_CONFIG.ASSUMED_VALIDITY_MS;
+      }
+      config.headers.Authorization = `Bearer ${this.cachedToken}`;
       return config;
     });
 
@@ -88,13 +138,46 @@ export class MiroClient {
 
   // Board Operations
   async listBoards(): Promise<MiroBoard[]> {
+    const now = Date.now();
+
+    // Return cached data if still valid
+    if (this.boardListCache && this.boardListCache.expiresAt > now) {
+      return this.boardListCache.data;
+    }
+
+    // Fetch fresh data
     const response = await this.client.get('/boards');
-    return response.data.data || [];
+    const data = response.data.data || [];
+
+    // Cache for configured TTL (boards don't change frequently)
+    this.boardListCache = {
+      data,
+      expiresAt: now + CACHE_CONFIG.BOARD_TTL_MS,
+    };
+
+    return data;
   }
 
   async getBoard(boardId: string): Promise<MiroBoard> {
+    const now = Date.now();
+
+    // Return cached data if still valid
+    const cached = this.boardCache.get(boardId);
+    if (cached && cached.expiresAt > now) {
+      return cached.data;
+    }
+
+    // Fetch fresh data
     const response = await this.client.get(`/boards/${boardId}`);
-    return response.data;
+    const data = response.data;
+
+    // Cache for configured TTL
+    this.boardCache.set(boardId, {
+      data,
+      expiresAt: now + CACHE_CONFIG.BOARD_TTL_MS,
+    });
+
+    return data;
   }
 
   async createBoard(name: string, description?: string): Promise<MiroBoard> {
@@ -115,6 +198,10 @@ export class MiroClient {
         },
       },
     });
+
+    // Invalidate board list cache (new board added)
+    this.boardListCache = null;
+
     return response.data;
   }
 
@@ -203,12 +290,8 @@ export class MiroClient {
     } = {}
   ): Promise<MiroItem> {
     // Convert named colors to hex for shapes (shapes require hex colors)
-    const fillColor = options.fillColor
-      ? (COLOR_MAP[options.fillColor] || options.fillColor)
-      : COLOR_MAP['light_blue'];
-    const borderColor = options.borderColor
-      ? (COLOR_MAP[options.borderColor] || options.borderColor)
-      : COLOR_MAP['blue'];
+    const fillColor = this.resolveColor(options.fillColor, 'light_blue');
+    const borderColor = this.resolveColor(options.borderColor, 'blue');
 
     const payload: any = {
       data: {
@@ -287,9 +370,7 @@ export class MiroClient {
     } = {}
   ): Promise<MiroItem> {
     // Convert named colors to hex for frames (frames require hex colors like shapes)
-    const fillColor = options.fillColor
-      ? (COLOR_MAP[options.fillColor] || options.fillColor)
-      : COLOR_MAP['light_gray'];
+    const fillColor = this.resolveColor(options.fillColor, 'light_gray');
 
     const response = await this.client.post(`/boards/${boardId}/frames`, {
       data: {
@@ -325,9 +406,7 @@ export class MiroClient {
     } = {}
   ): Promise<MiroItem> {
     // Convert named colors to hex for connectors (connectors require hex colors)
-    const strokeColor = options.strokeColor
-      ? (COLOR_MAP[options.strokeColor] || options.strokeColor)
-      : COLOR_MAP['blue'];
+    const strokeColor = this.resolveColor(options.strokeColor, 'blue');
 
     const body: any = {
       startItem: {

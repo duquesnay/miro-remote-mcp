@@ -132,7 +132,17 @@
 
 ## Planned
 
-### High Priority
+### High Priority (Quick Wins)
+
+- [📋] **CAP-INSTANT-RESPONSE**: User experiences faster board operations (vs 1-2s delays for repeated requests)
+  - Board list and details load instantly on repeated access
+  - No repeated API calls for static board information
+  - **Outcome**: 50-70% faster response time for board discovery
+
+- [📋] **CAP-BURST-PERFORMANCE**: User creates multiple items rapidly (vs slowdown on 10+ items)
+  - Token validation happens once per session, not per request
+  - Burst requests (20+ items) complete without slowdown
+  - **Outcome**: 90% reduction in authentication overhead during intensive work
 
 - [📋] **CAP-BATCH-CREATION**: User creates multiple similar items efficiently
   - Bulk sticky note creation
@@ -145,7 +155,12 @@
   - Hierarchical tree layout
   - **Outcome**: Professional-looking boards without manual positioning
 
-### Medium Priority
+### Medium Priority (Architecture & Features)
+
+- [📋] **CAP-RELIABLE-ERRORS**: User understands errors clearly (vs cryptic messages)
+  - Consistent error messages across all operations
+  - Actionable error guidance (what to do next)
+  - **Outcome**: Self-service troubleshooting without developer intervention
 
 - [📋] **CAP-BOARD-TEMPLATES**: User starts from common diagram types
   - Team topology templates
@@ -163,7 +178,7 @@
   - Ability to recreate boards from JSON
   - **Outcome**: Board versioning and backup
 
-### Low Priority
+### Low Priority (Features)
 
 - [📋] **CAP-IMAGE-UPLOAD**: User adds images to boards
   - Upload local images
@@ -180,11 +195,37 @@
   - Reply to comments
   - **Outcome**: Asynchronous collaboration via Claude
 
+### Technical Capabilities (Developer Experience)
+
+- [📋] **TECH-MAINTAINABILITY**: Developer modifies style logic in <1 file (vs 3 files currently)
+  - Color resolution logic centralized to single helper
+  - No duplicated code across create operations
+  - **Outcome**: 75% reduction in effort to update styling behavior
+
+- [📋] **TECH-CLARITY**: Developer understands configuration at a glance (vs hunting for magic numbers)
+  - All timeouts, ports, defaults defined as named constants
+  - Self-documenting configuration values
+  - **Outcome**: Onboarding time reduced, fewer configuration errors
+
+- [📋] **TECH-TESTABILITY**: Developer tests components in isolation (vs only E2E tests)
+  - Dependency injection pattern with interfaces
+  - Unit test coverage for business logic
+  - **Outcome**: 70% code coverage, faster feedback on changes
+
 ## Backlog Health
 
-**Total Capabilities Delivered**: 16 capabilities
-**Current Focus**: Frame-based organization (FEAT1)
-**Technical Investment Ratio**: ~80% features / ~20% infrastructure (healthy balance)
+**Total Capabilities Delivered**: 16 capabilities (100% production-ready)
+**Recently Completed**: FEAT1 (parent_id) - 2025-11-10
+**Planned Work**: 13 capabilities total
+  - 4 High Priority (Quick Wins - 2-3h total)
+  - 5 Medium Priority (Architecture & Features - 6-8h)
+  - 1 Low Priority (Features - TBD)
+  - 3 Technical Capabilities (Developer Experience - 1-2h)
+
+**Technical Investment Ratio**: ~15% (3 of 19 total items)
+  - **Status**: 🟢 Green Zone (0-20%) - Healthy balance
+  - Post-MVP optimization phase with quick wins prioritized
+  - Focus: Performance improvements before new features
 
 **Note**: All completed capabilities are production-ready and tested. The initial implementation (commit `30b523f`) delivered a complete MVP in a single development session.
 
