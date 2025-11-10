@@ -82,8 +82,10 @@ const server = http.createServer(async (req, res) => {
       const tokens = await oauth.exchangeCodeForToken(code);
 
       console.log('\n✓ Success! Tokens obtained:');
-      console.log('  Access Token:', tokens.access_token.substring(0, 20) + '...');
-      console.log('  Refresh Token:', tokens.refresh_token.substring(0, 20) + '...');
+      console.log('  Access Token:', tokens.access_token?.substring(0, 20) + '...');
+      if (tokens.refresh_token) {
+        console.log('  Refresh Token:', tokens.refresh_token.substring(0, 20) + '...');
+      }
       console.log('  Expires in:', tokens.expires_in, 'seconds');
       console.log(`\n✓ Tokens have been saved to ${tokensPath}`);
       console.log('\nYou can now use the MCP server - tokens will be auto-refreshed.');

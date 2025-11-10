@@ -70,7 +70,8 @@ export class OAuth2Manager {
 
       const tokenData: TokenData = {
         ...response.data,
-        expires_at: Date.now() + response.data.expires_in * 1000,
+        // If expires_in is 0, treat as long-lived token (1 year)
+        expires_at: Date.now() + (response.data.expires_in || 365 * 24 * 60 * 60) * 1000,
       };
 
       this.tokens = tokenData;
@@ -113,7 +114,8 @@ export class OAuth2Manager {
 
       const tokenData: TokenData = {
         ...response.data,
-        expires_at: Date.now() + response.data.expires_in * 1000,
+        // If expires_in is 0, treat as long-lived token (1 year)
+        expires_at: Date.now() + (response.data.expires_in || 365 * 24 * 60 * 60) * 1000,
       };
 
       this.tokens = tokenData;
@@ -145,9 +147,12 @@ export class OAuth2Manager {
     const expiresAt = this.tokens.expires_at || 0;
     const shouldRefresh = Date.now() + 5 * 60 * 1000 > expiresAt;
 
-    if (shouldRefresh) {
+    // Only refresh if we have a refresh token and token is expiring
+    if (shouldRefresh && this.tokens.refresh_token) {
       console.error('[OAuth] Token expired or expiring soon, refreshing...');
       await this.refreshAccessToken();
+    } else if (shouldRefresh && !this.tokens.refresh_token) {
+      console.error('[OAuth] Token expired but no refresh token available. Please re-authenticate.');
     }
 
     return this.tokens!.access_token;
