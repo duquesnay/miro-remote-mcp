@@ -16,19 +16,22 @@ export class OAuth2Manager {
   private clientId: string;
   private clientSecret: string;
   private redirectUri: string;
-  private tokenFile: string;
+  private tokenFile: string | null;
+  private persistTokens: boolean;
   private tokens: TokenData | null = null;
 
   constructor(
     clientId: string,
     clientSecret: string,
     redirectUri: string,
-    tokenFile: string = 'tokens.json'
+    tokenFile?: string,
+    persistTokens: boolean = true
   ) {
     this.clientId = clientId;
     this.clientSecret = clientSecret;
     this.redirectUri = redirectUri;
-    this.tokenFile = tokenFile;
+    this.tokenFile = tokenFile || null;
+    this.persistTokens = persistTokens;
   }
 
   /**
@@ -175,9 +178,22 @@ export class OAuth2Manager {
   }
 
   /**
-   * Save tokens to file
+   * Initialize tokens from object (for environment variables, no persistence)
+   */
+  setTokensFromObject(tokenData: TokenData): void {
+    this.tokens = tokenData;
+    console.error('[OAuth] Tokens initialized from object (in-memory only)');
+  }
+
+  /**
+   * Save tokens to file (only if persistence enabled and tokenFile specified)
    */
   private async saveTokens(tokens: TokenData): Promise<void> {
+    if (!this.persistTokens || !this.tokenFile) {
+      console.error('[OAuth] Token persistence disabled (in-memory only)');
+      return;
+    }
+
     try {
       await fs.writeFile(this.tokenFile, JSON.stringify(tokens, null, 2), 'utf-8');
       console.error('[OAuth] Tokens saved successfully');
@@ -187,9 +203,14 @@ export class OAuth2Manager {
   }
 
   /**
-   * Load tokens from file
+   * Load tokens from file (only if tokenFile specified)
    */
   private async loadTokens(): Promise<void> {
+    if (!this.tokenFile) {
+      console.error('[OAuth] No token file specified (in-memory mode)');
+      return;
+    }
+
     try {
       const data = await fs.readFile(this.tokenFile, 'utf-8');
       this.tokens = JSON.parse(data);

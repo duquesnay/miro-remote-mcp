@@ -123,7 +123,12 @@
 
 ## In Progress
 
-- [⏳] **CAP-SCALEWAY-DEPLOY**: User accesses Miro MCP from any Claude client (not just local Desktop)
+- [⏳] **CAP-HTTP-HANDLER**: Developer creates Scaleway Functions handler for HTTP access
+  - HTTP handler (src/functions-handler.ts) with request routing
+  - OAuth2Manager modifications for in-memory token management (no filesystem)
+  - Local testing of handler before deployment
+  - **Outcome**: Miro MCP code ready for Scaleway Functions deployment
+  - **Note**: OPS deployment work (script, infrastructure) deferred to OPS-SCALEWAY-DEPLOY
 
 ## Recently Completed (2025-11-10)
 
@@ -216,6 +221,16 @@
   - Unit test coverage for business logic
   - **Outcome**: 70% code coverage, faster feedback on changes
 
+### OPS/Infrastructure (Deferred)
+
+- [📋] **OPS-SCALEWAY-DEPLOY**: Deploy Miro MCP to Scaleway Functions infrastructure
+  - Deployment script (deploy-scaleway-functions.sh) automating build, package, upload
+  - Scaleway namespace and function configuration
+  - Environment variable setup (MIRO_CONFIG_B64, X-Auth-Token)
+  - Monitoring and health checks
+  - **Outcome**: Miro MCP accessible via HTTPS from any Claude client
+  - **Prerequisite**: CAP-HTTP-HANDLER must be completed first
+
 ## Backlog Health
 
 **Total Capabilities Delivered**: 20 capabilities
@@ -228,15 +243,17 @@
   - Morning: Initial MVP (16 capabilities, 6000 lines)
   - Afternoon: FEAT1 + Quick Wins (4 capabilities, +230 lines)
 
-**Planned Work**: 9 capabilities remaining
+**Planned Work**: 10 items remaining
   - 2 High Priority (Features - CAP-BATCH-CREATION, CAP-LAYOUT-ASSISTANCE)
   - 6 Medium Priority (Architecture & Features)
   - 1 Technical Capability (TECH-TESTABILITY)
+  - 1 OPS/Infrastructure (OPS-SCALEWAY-DEPLOY - deferred)
 
-**Technical Investment Ratio**: ~11% (1 of 9 remaining items)
+**Technical Investment Ratio**: 10% (1 of 10 remaining items)
   - **Status**: 🟢 Green Zone (0-20%) - Excellent balance
   - Quick Wins delivered 50-90% performance gains in 2-3h
   - Focus: New features next, architecture improvements as needed
+  - **Note**: OPS work (deployment) cleanly separated from DEV work
 
 **Performance Achievements**:
   - API call reduction: 50-70% via board caching

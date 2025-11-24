@@ -1,7 +1,6 @@
 import { OAuth2Manager } from './oauth.js';
 import { MiroClient } from './miro-client.js';
 import { handleToolCall, TOOL_DEFINITIONS } from './tools.js';
-import { OAUTH_CONFIG } from './config.js';
 import { existsSync, readFileSync } from 'fs';
 
 // JSON-RPC types
@@ -63,6 +62,13 @@ function apiResponse(statusCode: number, body: unknown): ApiResponse {
 const TOKEN_FILE = process.env.TOKEN_FILE || '/data/tokens.json';
 
 /**
+ * Base URL for OAuth callback (must match Miro app configuration)
+ * Example: https://miro-mcp.example.com or http://localhost:3000
+ */
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+const OAUTH_REDIRECT_URI = `${BASE_URL}/oauth/callback`;
+
+/**
  * Initialize OAuth - tries token file first, falls back to env vars
  */
 async function initializeOAuth(
@@ -72,7 +78,7 @@ async function initializeOAuth(
   const oauth = new OAuth2Manager(
     clientId,
     clientSecret,
-    OAUTH_CONFIG.DEFAULT_REDIRECT_URI,
+    OAUTH_REDIRECT_URI,
     TOKEN_FILE
   );
 
@@ -224,6 +230,70 @@ class MiroFunctionHandler {
       }
 
       return apiResponse(200, jsonRpcError(id, -32601, `Method not found: ${method}`));
+    }
+
+    // OAuth: Start authorization flow
+    if (path === '/oauth/authorize' && httpMethod === 'GET') {
+      const clientIdB64 = process.env.MIRO_CLIENT_ID_B64;
+      if (!clientIdB64) {
+        return apiResponse(500, { error: 'MIRO_CLIENT_ID_B64 not configured' });
+      }
+      const clientId = Buffer.from(clientIdB64, 'base64').toString('utf-8');
+
+      const params = new URLSearchParams({
+        response_type: 'code',
+        client_id: clientId,
+        redirect_uri: OAUTH_REDIRECT_URI,
+      });
+
+      const authUrl = `https://miro.com/oauth/authorize?${params.toString()}`;
+
+      return {
+        statusCode: 302,
+        body: '',
+        headers: { Location: authUrl, 'Content-Type': 'text/plain' },
+      };
+    }
+
+    // OAuth: Handle callback with authorization code
+    if (path === '/oauth/callback' && httpMethod === 'GET') {
+      const code = event.queryStringParameters?.code;
+      const error = event.queryStringParameters?.error;
+
+      if (error) {
+        return apiResponse(400, { error: `OAuth error: ${error}` });
+      }
+
+      if (!code) {
+        return apiResponse(400, { error: 'Missing authorization code' });
+      }
+
+      const clientIdB64 = process.env.MIRO_CLIENT_ID_B64;
+      const clientSecretB64 = process.env.MIRO_CLIENT_SECRET_B64;
+
+      if (!clientIdB64 || !clientSecretB64) {
+        return apiResponse(500, { error: 'OAuth credentials not configured' });
+      }
+
+      const clientId = Buffer.from(clientIdB64, 'base64').toString('utf-8');
+      const clientSecret = Buffer.from(clientSecretB64, 'base64').toString('utf-8');
+
+      try {
+        const oauth = new OAuth2Manager(clientId, clientSecret, OAUTH_REDIRECT_URI, TOKEN_FILE);
+        await oauth.exchangeCodeForToken(code);
+
+        // Reset initialized state so next request uses new tokens
+        this.initialized = false;
+        this.miroClient = null;
+
+        return apiResponse(200, {
+          success: true,
+          message: 'Miro authorization successful. Tokens have been saved.',
+        });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Token exchange failed';
+        return apiResponse(500, { error: msg });
+      }
     }
 
     return apiResponse(404, { error: 'Not found' });
