@@ -27,7 +27,8 @@ process.env = {
   MIRO_ACCESS_TOKEN_B64: Buffer.from('test-access-token').toString('base64'),
   MIRO_REFRESH_TOKEN_B64: Buffer.from('test-refresh-token').toString('base64'),
   TOKEN_FILE: '/tmp/test-tokens.json',
-  BASE_URL: 'https://test.example.com',
+  GATEWAY_URL: 'https://gateway.example.com',
+  MCP_PATH: '/mcp/miro',
 };
 
 // Use vi.hoisted to define mock implementations that can be mutated

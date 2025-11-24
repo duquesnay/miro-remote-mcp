@@ -62,11 +62,18 @@ function apiResponse(statusCode: number, body: unknown): ApiResponse {
 const TOKEN_FILE = process.env.TOKEN_FILE || '/data/tokens.json';
 
 /**
- * Base URL for OAuth callback (must match Miro app configuration)
- * Example: https://miro-mcp.example.com or http://localhost:3000
+ * Gateway URL (shared across MCPs in docker-compose)
+ * Example: https://gateway.example.com
  */
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
-const OAUTH_REDIRECT_URI = `${BASE_URL}/oauth/callback`;
+const GATEWAY_URL = process.env.GATEWAY_URL || 'http://localhost:3000';
+
+/**
+ * MCP mount path (specific to this MCP)
+ * Example: /mcp/miro
+ */
+const MCP_PATH = process.env.MCP_PATH || '';
+
+const OAUTH_REDIRECT_URI = `${GATEWAY_URL}${MCP_PATH}/oauth/callback`;
 
 /**
  * Initialize OAuth - tries token file first, falls back to env vars
