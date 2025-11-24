@@ -156,6 +156,7 @@ class MiroFunctionHandler {
 
   async handleRequest(event: ScalewayEvent): Promise<ApiResponse> {
     const { httpMethod, path, body } = event;
+    console.log(`[Handler] ${httpMethod} ${path}`);
 
     // Health check
     if (path === '/health' && httpMethod === 'GET') {
