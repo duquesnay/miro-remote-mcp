@@ -172,7 +172,7 @@ class MiroFunctionHandler {
     }
 
     // MCP JSON-RPC endpoint
-    if (path === '/mcp' && httpMethod === 'POST') {
+    if (path === '/' && httpMethod === 'POST') {
       if (!body) {
         return apiResponse(400, jsonRpcError(null, -32600, 'Empty request body'));
       }

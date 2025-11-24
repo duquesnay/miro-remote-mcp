@@ -72,14 +72,14 @@ export function healthCheckEvent(): ScalewayEvent {
 }
 
 /**
- * Create a POST /mcp event with JSON-RPC body
+ * Create a POST / event with JSON-RPC body
  */
 export function mcpEvent(
   method: string,
   params?: Record<string, unknown>,
   id: string | number = 1
 ): ScalewayEvent {
-  return createEvent('POST', '/mcp', {
+  return createEvent('POST', '/', {
     body: jsonRpcRequest(method, params, id),
   });
 }

@@ -211,7 +211,7 @@ describe('functions-handler', () => {
 
   describe('Error Cases', () => {
     it('returns parse error for malformed JSON', async () => {
-      const event = createEvent('POST', '/mcp', {
+      const event = createEvent('POST', '/', {
         body: '{ invalid json }',
       });
       const context = createContext();
@@ -225,7 +225,7 @@ describe('functions-handler', () => {
     });
 
     it('returns error for empty body', async () => {
-      const event = createEvent('POST', '/mcp', { body: undefined });
+      const event = createEvent('POST', '/', { body: undefined });
       const context = createContext();
 
       const response = await handler(event, context);

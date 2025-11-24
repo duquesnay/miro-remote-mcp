@@ -57,7 +57,7 @@
 
 ## In Progress
 
-(No items currently in progress)
+- [⏳] TECH4: Gateway client accesses MCP at clean root URL
 
 ## Recently Completed (2025-11-24)
 

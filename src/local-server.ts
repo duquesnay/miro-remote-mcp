@@ -44,7 +44,7 @@ const PORT = process.env.PORT || 3000;
 const server = app.listen(PORT, () => {
   console.log(`🚀 Miro MCP server running on http://localhost:${PORT}`);
   console.log(`   Health: GET /health`);
-  console.log(`   MCP:    POST /mcp`);
+  console.log(`   MCP:    POST /`);
 });
 
 // Graceful shutdown for container orchestration
