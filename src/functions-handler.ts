@@ -2,6 +2,7 @@ import { OAuth2Manager } from './oauth.js';
 import { MiroClient } from './miro-client.js';
 import { handleToolCall, TOOL_DEFINITIONS } from './tools.js';
 import { OAUTH_CONFIG } from './config.js';
+import { existsSync, readFileSync } from 'fs';
 
 // JSON-RPC types
 interface JsonRpcRequest {
@@ -57,17 +58,44 @@ function apiResponse(statusCode: number, body: unknown): ApiResponse {
 }
 
 /**
- * Initialize OAuth with tokens from base64-encoded environment variables
+ * Token file path - mount a volume here for persistence across restarts
  */
-async function initializeServerlessOAuth(
+const TOKEN_FILE = process.env.TOKEN_FILE || '/data/tokens.json';
+
+/**
+ * Initialize OAuth - tries token file first, falls back to env vars
+ */
+async function initializeOAuth(
   clientId: string,
   clientSecret: string
 ): Promise<OAuth2Manager> {
+  const oauth = new OAuth2Manager(
+    clientId,
+    clientSecret,
+    OAUTH_CONFIG.DEFAULT_REDIRECT_URI,
+    TOKEN_FILE
+  );
+
+  // Priority 1: Token file (persisted, survives restarts)
+  if (existsSync(TOKEN_FILE)) {
+    try {
+      const data = JSON.parse(readFileSync(TOKEN_FILE, 'utf-8'));
+      if (data.access_token) {
+        await oauth.setTokens(data.access_token, data.refresh_token || '', 3600);
+        console.log(`[OAuth] Loaded tokens from ${TOKEN_FILE}`);
+        return oauth;
+      }
+    } catch (e) {
+      console.warn(`[OAuth] Failed to read ${TOKEN_FILE}, trying env vars`);
+    }
+  }
+
+  // Priority 2: Environment variables (initial bootstrap)
   const accessTokenB64 = process.env.MIRO_ACCESS_TOKEN_B64;
   const refreshTokenB64 = process.env.MIRO_REFRESH_TOKEN_B64;
 
   if (!accessTokenB64) {
-    throw new Error('MIRO_ACCESS_TOKEN_B64 environment variable not set');
+    throw new Error('No tokens: neither TOKEN_FILE nor MIRO_ACCESS_TOKEN_B64 available');
   }
 
   const accessToken = Buffer.from(accessTokenB64, 'base64').toString('utf-8');
@@ -75,14 +103,8 @@ async function initializeServerlessOAuth(
     ? Buffer.from(refreshTokenB64, 'base64').toString('utf-8')
     : '';
 
-  const oauth = new OAuth2Manager(
-    clientId,
-    clientSecret,
-    OAUTH_CONFIG.DEFAULT_REDIRECT_URI,
-    '/tmp/tokens.json'
-  );
-
   await oauth.setTokens(accessToken, refreshToken, 3600);
+  console.log('[OAuth] Initialized from env vars, will persist to', TOKEN_FILE);
   return oauth;
 }
 
@@ -104,7 +126,7 @@ class MiroFunctionHandler {
       const clientId = Buffer.from(clientIdB64, 'base64').toString('utf-8');
       const clientSecret = Buffer.from(clientSecretB64, 'base64').toString('utf-8');
 
-      const oauth = await initializeServerlessOAuth(clientId, clientSecret);
+      const oauth = await initializeOAuth(clientId, clientSecret);
 
       if (!oauth.hasTokens()) {
         throw new Error('No Miro tokens available');

@@ -4,7 +4,8 @@ WORKDIR /app
 
 # Security: Run as non-root user
 RUN addgroup -g 1001 -S nodejs && \
-    adduser -S app -u 1001
+    adduser -S app -u 1001 && \
+    mkdir -p /data && chown app:nodejs /data
 
 COPY package*.json ./
 RUN npm ci --only=production && npm cache clean --force
