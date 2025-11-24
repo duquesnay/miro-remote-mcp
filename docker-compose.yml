@@ -14,10 +14,11 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
+      # External base URI for OAuth callback (must match Miro app redirect URI)
+      - BASE_URI=${BASE_URI}
+      # OAuth credentials (tokens are generated via /oauth/authorize flow)
       - MIRO_CLIENT_ID_B64=${MIRO_CLIENT_ID_B64}
       - MIRO_CLIENT_SECRET_B64=${MIRO_CLIENT_SECRET_B64}
-      - MIRO_ACCESS_TOKEN_B64=${MIRO_ACCESS_TOKEN_B64}
-      - MIRO_REFRESH_TOKEN_B64=${MIRO_REFRESH_TOKEN_B64}
     volumes:
       - miro-tokens:/data
     networks:
