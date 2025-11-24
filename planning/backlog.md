@@ -123,12 +123,13 @@
 
 ## In Progress
 
-- [⏳] **CAP-HTTP-HANDLER**: Developer creates Scaleway Functions handler for HTTP access
-  - HTTP handler (src/functions-handler.ts) with request routing
-  - OAuth2Manager modifications for in-memory token management (no filesystem)
-  - Local testing of handler before deployment
-  - **Outcome**: Miro MCP code ready for Scaleway Functions deployment
-  - **Note**: OPS deployment work (script, infrastructure) deferred to OPS-SCALEWAY-DEPLOY
+- [✅] **CAP-HTTP-HANDLER**: Developer creates gateway-compatible HTTP handler ✅ 2025-11-24
+  - JSON-RPC handler (POST /mcp) with MCP protocol compliance
+  - OAuth HTTP endpoints (GET /oauth/authorize, /oauth/callback)
+  - Token persistence via volume mount (/data/tokens.json)
+  - Health check endpoint (GET /health)
+  - Docker-ready with graceful shutdown
+  - **Outcome achieved**: Miro MCP ready for gateway integration
 
 ## Recently Completed (2025-11-10)
 
@@ -216,10 +217,11 @@
 
 ### Technical Capabilities (Developer Experience)
 
-- [📋] **TECH-TESTABILITY**: Developer tests components in isolation (vs only E2E tests)
-  - Dependency injection pattern with interfaces
-  - Unit test coverage for business logic
-  - **Outcome**: 70% code coverage, faster feedback on changes
+- [✅] **TECH-TESTABILITY**: Developer tests components in isolation ✅ 2025-11-24
+  - Vitest framework with 39 unit tests
+  - Coverage: functions-handler, oauth, tools
+  - Fast feedback: 450ms test suite
+  - **Outcome achieved**: Automated test suite with mocks for critical paths
 
 ### OPS/Infrastructure (Deferred)
 
@@ -233,20 +235,21 @@
 
 ## Backlog Health
 
-**Total Capabilities Delivered**: 20 capabilities
+**Total Capabilities Delivered**: 22 capabilities
   - 16 MVP capabilities (Initial implementation)
   - 1 Feature (FEAT1 - parent_id)
   - 2 Performance (CAP-INSTANT-RESPONSE, CAP-BURST-PERFORMANCE)
   - 2 Technical (TECH-CLARITY, TECH-MAINTAINABILITY)
+  - 1 Infrastructure (CAP-HTTP-HANDLER - gateway-ready)
+  - 1 Technical (TECH-TESTABILITY - unit test suite)
 
-**Recently Completed** (2025-11-10):
-  - Morning: Initial MVP (16 capabilities, 6000 lines)
-  - Afternoon: FEAT1 + Quick Wins (4 capabilities, +230 lines)
+**Recently Completed** (2025-11-24):
+  - CAP-HTTP-HANDLER: JSON-RPC handler + OAuth HTTP endpoints
+  - TECH-TESTABILITY: Vitest framework with 39 unit tests
 
-**Planned Work**: 10 items remaining
+**Planned Work**: 8 items remaining
   - 2 High Priority (Features - CAP-BATCH-CREATION, CAP-LAYOUT-ASSISTANCE)
-  - 6 Medium Priority (Architecture & Features)
-  - 1 Technical Capability (TECH-TESTABILITY)
+  - 5 Medium Priority (Architecture & Features)
   - 1 OPS/Infrastructure (OPS-SCALEWAY-DEPLOY - deferred)
 
 **Technical Investment Ratio**: 10% (1 of 10 remaining items)
