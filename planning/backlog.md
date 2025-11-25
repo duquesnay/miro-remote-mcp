@@ -69,7 +69,7 @@
 ### Priority Rationale
 
 **High Priority**: Foundation + Highest ROI (effort vs user value)
-- CAP-RELIABLE-ERRORS: Foundation capability - error clarity blocks debugging and enables production usage for ALL future capabilities
+- CAP-RICH-DIAGNOSTICS: Foundation capability - error clarity blocks debugging and enables production usage for ALL future capabilities
 - CAP-BATCH-CREATION: Reduces conversation verbosity 10x for repetitive tasks (10 messages → 1 command)
 - CAP-LAYOUT-ASSISTANCE: Eliminates coordinate calculation burden for structured diagrams
 
@@ -85,7 +85,7 @@
 
 ### High Priority
 
-- [ ] CAP-RELIABLE-ERRORS: Developer debugs MCP tool failures efficiently
+- [ ] CAP-RICH-DIAGNOSTICS: Developer identifies failure root cause in one glance
 - [ ] CAP-BATCH-CREATION: User creates multiple similar items efficiently
 - [ ] CAP-LAYOUT-ASSISTANCE: User gets suggested layouts for common patterns
 
@@ -120,7 +120,7 @@
   - TECH-TESTABILITY: Vitest framework with 39 unit tests
 
 **Planned Work**: 10 items remaining
-  - 3 High Priority (CAP-RELIABLE-ERRORS, CAP-BATCH-CREATION, CAP-LAYOUT-ASSISTANCE)
+  - 3 High Priority (CAP-RICH-DIAGNOSTICS, CAP-BATCH-CREATION, CAP-LAYOUT-ASSISTANCE)
   - 3 Medium Priority (CAP-BOARD-TEMPLATES, CAP-ITEM-SEARCH, CAP-BOARD-EXPORT)
   - 3 Low Priority (CAP-IMAGE-UPLOAD, CAP-BOARD-PERMISSIONS, CAP-COMMENTS)
   - 1 OPS/Infrastructure (OPS-SCALEWAY - deferred)
@@ -128,7 +128,7 @@
 **Technical Investment Ratio**: 10% (1 of 10 remaining items)
   - **Status**: 🟢 Green Zone (0-20%) - Excellent balance
   - Quick Wins delivered 50-90% performance gains in 2-3h
-  - Focus: Foundation first (CAP-RELIABLE-ERRORS), then features
+  - Focus: Foundation first (CAP-RICH-DIAGNOSTICS), then features
   - **Note**: OPS work (deployment) cleanly separated from DEV work
 
 **Performance Achievements**:

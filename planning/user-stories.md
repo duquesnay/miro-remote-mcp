@@ -53,17 +53,26 @@
 
 ---
 
-### CAP-RELIABLE-ERRORS: Developer debugs MCP tool failures efficiently
+### CAP-RICH-DIAGNOSTICS: Developer identifies failure root cause in one glance
 
 **User**: Developer using Miro MCP via Claude Desktop/Code
-**Outcome**: Error messages reveal cause and suggest resolution (vs generic "Error occurred")
-**Context**: Currently all errors show "Error occurred during tool execution" - no visibility into actual cause (API error, auth issue, invalid parameters, rate limit)
+**Outcome**: Error messages include error type, API status, affected parameter, and suggested resolution
+**Context**: Current errors show "what failed" but not "why" or "how to fix" - no visibility into actual cause (API error, auth issue, invalid parameters, rate limit)
 
 **Acceptance Criteria**:
-- [ ] Error messages include: error type, cause, affected tool
-- [ ] Miro API errors surface status code and message
-- [ ] Auth errors indicate token expiry or permission issues
-- [ ] Invalid parameters show which parameter failed
+- [ ] Error messages include: error type (API/Auth/Validation), HTTP status code if applicable
+- [ ] Miro API errors surface full error message from API response
+- [ ] Auth errors indicate token expiry vs permission issues with renewal suggestion
+- [ ] Validation errors show which parameter failed and expected format/value
+- [ ] Rate limit errors show retry timing suggestion
+- [ ] Each error includes suggested resolution action
+
+**Implementation Notes**:
+- Enhance error handling in src/miro-client.ts and src/mcp-server.ts
+- Create error classification utility (API/Auth/Validation/RateLimit)
+- Extract and format API error responses from Miro 4xx/5xx responses
+- Add parameter validation with specific error messages before API calls
+- Include suggested actions: "Check token in config", "Valid values: ...", "Retry in 60s"
 
 **Source**: BACKLOG - foundation capability
 

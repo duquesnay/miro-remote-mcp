@@ -24,8 +24,8 @@ FEAT: Frame Organization
 
 ```
 Epic 2: Foundation & DX
-├── CAP-RELIABLE-ERRORS: Developer debugs MCP tool failures efficiently (TBD)
-│   └── Foundation for production usage - errors reveal cause vs generic "Error occurred"
+├── CAP-RICH-DIAGNOSTICS: Developer identifies failure root cause in one glance (TBD)
+│   └── Foundation for production usage - errors include type, status, parameter, resolution
 ├── CAP-BATCH-CREATION: User creates multiple similar items efficiently (TBD)
 │   └── Reduces conversation verbosity 10x for repetitive tasks (10 messages → 1 command)
 └── CAP-LAYOUT-ASSISTANCE: User gets suggested layouts for common patterns (TBD)
