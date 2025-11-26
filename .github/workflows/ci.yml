@@ -6,6 +6,13 @@ on:
     branches:
       - main
       - feat/*
+  workflow_dispatch:
+    inputs:
+      push_image:
+        description: 'Push image to registry (even from non-main branch)'
+        required: false
+        type: boolean
+        default: false
 
 env:
   NODE_VERSION: '20'
@@ -40,7 +47,9 @@ jobs:
     permissions:
       contents: read
       packages: write
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.push_image == 'true')
 
     steps:
       - name: Checkout code
@@ -63,8 +72,9 @@ jobs:
           images: ghcr.io/${{ github.repository }}
           tags: |
             type=sha,format=long
-            type=raw,value=dev
-            type=raw,value=latest
+            type=ref,event=branch
+            type=raw,value=dev,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5

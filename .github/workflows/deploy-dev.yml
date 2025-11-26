@@ -8,9 +8,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to deploy (e.g., commit SHA or tag)'
+        description: 'Image tag to deploy (e.g., feat-my-branch, sha-abc123, dev, latest)'
         required: false
-        default: 'main'
+        default: 'dev'
 
 jobs:
   deploy:
