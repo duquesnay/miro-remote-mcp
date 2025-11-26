@@ -8,9 +8,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to deploy (e.g., v1.2.3 or commit SHA)'
+        description: 'Version to deploy (e.g., v1.2.3, latest, or commit SHA)'
         required: false
-        default: 'main'
+        default: 'latest'
 
 jobs:
   deploy:
