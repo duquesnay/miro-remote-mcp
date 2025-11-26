@@ -99,8 +99,10 @@ jobs:
       - name: Update docker-compose to use registry image
         run: |
           cd miro-mcp
+          # Convert repository name to lowercase for ghcr.io
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           # Replace build context with image from registry
-          sed -i.bak 's|build: \.|image: ghcr.io/${{ github.repository }}:${{ steps.version.outputs.image_tag }}|' docker-compose.yml
+          sed -i.bak "s|build: \.|image: ghcr.io/$REPO_LOWER:${{ steps.version.outputs.image_tag }}|" docker-compose.yml
           cat docker-compose.yml
 
       - name: Upload .env and docker-compose to server
@@ -111,7 +113,10 @@ jobs:
 
       - name: Login to registry on server and pull image
         run: |
-          ssh root@${{ secrets.SERVER_HOST }} bash -s "${{ secrets.GH_PAT }}" "${{ github.actor }}" "${{ github.repository }}" "${{ steps.version.outputs.image_tag }}" << 'REMOTE_EOF'
+          # Convert repository name to lowercase for ghcr.io
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+
+          ssh root@${{ secrets.SERVER_HOST }} bash -s "${{ secrets.GH_PAT }}" "${{ github.actor }}" "$REPO_LOWER" "${{ steps.version.outputs.image_tag }}" << 'REMOTE_EOF'
           set -e
           GH_PAT="$1"
           GH_ACTOR="$2"
