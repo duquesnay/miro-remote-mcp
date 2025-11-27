@@ -208,9 +208,8 @@ describe('functions-handler', () => {
 
       // If init fails, we get error - this tests the format when successful
       if (jsonRpc.error) {
-        // Init failed due to test env - skip format check
-        // The format requirement is documented and tested via curl
-        expect(jsonRpc.error.code).toBe(-32603);
+        // Init failed due to test env - with reauthentication flow, auth failures return -32001
+        expect(jsonRpc.error.code).toBe(-32001);
         return;
       }
 
@@ -241,8 +240,8 @@ describe('functions-handler', () => {
       expect(response.statusCode).toBe(200);
       const jsonRpc = parseJsonRpcResponse(response.body);
       expect(jsonRpc.error).toBeDefined();
-      // Error code depends on whether init succeeded
-      expect(jsonRpc.error?.code).toBe(-32603);
+      // With reauthentication flow, auth failures during init return -32001
+      expect(jsonRpc.error?.code).toBe(-32001);
     });
 
     it('returns error for unknown method', async () => {
@@ -342,6 +341,195 @@ describe('functions-handler', () => {
       // Response depends on whether the mock was properly applied
       // We verify it returns 200 or 500 (not 400 for validation errors)
       expect([200, 500]).toContain(response.statusCode);
+    });
+  });
+
+  describe('Reauthentication Flow (CAP-REAUTH-FLOW)', () => {
+    describe('tools/call with expired token', () => {
+      it('returns JSON-RPC error -32001 with authorize_url when Miro API returns 401', async () => {
+        // Setup: Mock handleToolCall to throw AUTH_ERROR
+        const authError = new Error('Miro authentication failed');
+        (authError as any).diagnostic = {
+          type: 'AUTH_ERROR',
+          message: 'Token expired',
+          statusCode: 401,
+        };
+        mocks.mockHandleToolCall.mockRejectedValue(authError);
+
+        const event = mcpEvent('tools/call', {
+          name: 'list_boards',
+          arguments: {},
+        });
+        const context = createContext();
+
+        const response = await handler(event, context);
+
+        // Verify response structure
+        expect(response.statusCode).toBe(200);
+        const jsonRpc = parseJsonRpcResponse(response.body);
+
+        // Verify JSON-RPC error format
+        expect(jsonRpc.error).toBeDefined();
+        expect(jsonRpc.error?.code).toBe(-32001);
+        expect(jsonRpc.error?.message).toBe('Miro authentication expired or invalid.');
+
+        // Verify error.data structure
+        expect(jsonRpc.error?.data).toBeDefined();
+        expect((jsonRpc.error?.data as any).error_type).toBe('miro_auth_expired');
+        expect((jsonRpc.error?.data as any).service).toBe('miro');
+        // Note: BASE_URI is module-level constant, uses default in tests
+        expect((jsonRpc.error?.data as any).authorize_url).toBe('http://localhost:3000/oauth/authorize');
+        expect((jsonRpc.error?.data as any).action_hint).toContain('reauthenticate');
+      });
+
+      it('includes WWW-Authenticate header with authorize_url when auth fails', async () => {
+        // Setup: Mock handleToolCall to throw AUTH_ERROR
+        const authError = new Error('Miro authentication failed');
+        (authError as any).diagnostic = {
+          type: 'AUTH_ERROR',
+          message: 'Token expired',
+          statusCode: 401,
+        };
+        mocks.mockHandleToolCall.mockRejectedValue(authError);
+
+        const event = mcpEvent('tools/call', {
+          name: 'list_boards',
+          arguments: {},
+        });
+        const context = createContext();
+
+        const response = await handler(event, context);
+
+        // Verify WWW-Authenticate header is present
+        expect(response.headers['WWW-Authenticate']).toBeDefined();
+        expect(response.headers['WWW-Authenticate']).toContain('Bearer error="invalid_token"');
+        // Note: BASE_URI is module-level constant, uses default in tests
+        expect(response.headers['WWW-Authenticate']).toContain('authorize_url="http://localhost:3000/oauth/authorize"');
+      });
+
+      it('constructs authorize_url with /oauth/authorize path', async () => {
+        // Setup: Mock handleToolCall to throw AUTH_ERROR
+        const authError = new Error('Miro authentication failed');
+        (authError as any).diagnostic = {
+          type: 'AUTH_ERROR',
+          message: 'Token expired',
+          statusCode: 401,
+        };
+        mocks.mockHandleToolCall.mockRejectedValue(authError);
+
+        const event = mcpEvent('tools/call', {
+          name: 'list_boards',
+          arguments: {},
+        });
+        const context = createContext();
+
+        const response = await handler(event, context);
+
+        const jsonRpc = parseJsonRpcResponse(response.body);
+
+        // Verify authorize_url format (BASE_URI + /oauth/authorize)
+        // Note: In production, BASE_URI is set via env var; in tests it uses default
+        const authorizeUrl = (jsonRpc.error?.data as any).authorize_url;
+        expect(authorizeUrl).toBeDefined();
+        expect(authorizeUrl).toContain('/oauth/authorize');
+        expect(response.headers['WWW-Authenticate']).toContain(authorizeUrl);
+      });
+    });
+
+    describe('initialization with expired token', () => {
+      it('returns reauthentication error when verifyAuth fails during initialization', async () => {
+        // Setup: Mock verifyAuth to fail
+        mocks.mockVerifyAuth.mockResolvedValue(false);
+
+        const event = mcpEvent('tools/call', {
+          name: 'list_boards',
+          arguments: {},
+        });
+        const context = createContext();
+
+        const response = await handler(event, context);
+
+        // Verify response structure
+        expect(response.statusCode).toBe(200);
+        const jsonRpc = parseJsonRpcResponse(response.body);
+
+        // Verify JSON-RPC error format
+        expect(jsonRpc.error).toBeDefined();
+        expect(jsonRpc.error?.code).toBe(-32001);
+        expect(jsonRpc.error?.message).toBe('Miro authentication expired or invalid.');
+
+        // Verify error.data structure
+        expect(jsonRpc.error?.data).toBeDefined();
+        expect((jsonRpc.error?.data as any).error_type).toBe('miro_auth_expired');
+        // Note: BASE_URI is module-level constant, uses default in tests
+        expect((jsonRpc.error?.data as any).authorize_url).toBe('http://localhost:3000/oauth/authorize');
+      });
+
+      it('includes WWW-Authenticate header when initialization fails due to auth', async () => {
+        // Setup: Mock verifyAuth to fail
+        mocks.mockVerifyAuth.mockResolvedValue(false);
+
+        const event = mcpEvent('tools/call', {
+          name: 'list_boards',
+          arguments: {},
+        });
+        const context = createContext();
+
+        const response = await handler(event, context);
+
+        // Verify WWW-Authenticate header is present
+        expect(response.headers['WWW-Authenticate']).toBeDefined();
+        expect(response.headers['WWW-Authenticate']).toContain('Bearer error="invalid_token"');
+        // Note: BASE_URI is module-level constant, uses default in tests
+        expect(response.headers['WWW-Authenticate']).toContain('authorize_url="http://localhost:3000/oauth/authorize"');
+      });
+    });
+
+    describe('error format consistency', () => {
+      it('uses consistent error structure for both init and runtime auth failures', async () => {
+        // Test runtime auth failure
+        const authError = new Error('Miro authentication failed');
+        (authError as any).diagnostic = {
+          type: 'AUTH_ERROR',
+          message: 'Token expired',
+          statusCode: 401,
+        };
+        mocks.mockHandleToolCall.mockRejectedValue(authError);
+
+        const runtimeEvent = mcpEvent('tools/call', {
+          name: 'list_boards',
+          arguments: {},
+        }, 1);
+        const runtimeContext = createContext('runtime-request');
+
+        const runtimeResponse = await handler(runtimeEvent, runtimeContext);
+        const runtimeJsonRpc = parseJsonRpcResponse(runtimeResponse.body);
+
+        // Test init auth failure
+        mocks.mockVerifyAuth.mockResolvedValue(false);
+        const initEvent = mcpEvent('tools/call', {
+          name: 'list_boards',
+          arguments: {},
+        }, 2);
+        const initContext = createContext('init-request');
+
+        const initResponse = await handler(initEvent, initContext);
+        const initJsonRpc = parseJsonRpcResponse(initResponse.body);
+
+        // Verify both use same error code and structure
+        expect(runtimeJsonRpc.error?.code).toBe(-32001);
+        expect(initJsonRpc.error?.code).toBe(-32001);
+
+        expect((runtimeJsonRpc.error?.data as any).error_type).toBe('miro_auth_expired');
+        expect((initJsonRpc.error?.data as any).error_type).toBe('miro_auth_expired');
+
+        expect((runtimeJsonRpc.error?.data as any).authorize_url).toBeDefined();
+        expect((initJsonRpc.error?.data as any).authorize_url).toBeDefined();
+
+        // Verify both include WWW-Authenticate header
+        expect(runtimeResponse.headers['WWW-Authenticate']).toBeDefined();
+        expect(initResponse.headers['WWW-Authenticate']).toBeDefined();
+      });
     });
   });
 });
