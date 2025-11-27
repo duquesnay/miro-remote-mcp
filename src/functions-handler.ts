@@ -2,6 +2,7 @@ import { OAuth2Manager } from './oauth.js';
 import { MiroClient } from './miro-client.js';
 import { handleToolCall, TOOL_DEFINITIONS } from './tools.js';
 import { existsSync, readFileSync } from 'fs';
+import { DiagnosticErrorType } from './errors.js';
 
 // JSON-RPC types
 interface JsonRpcRequest {
@@ -48,11 +49,38 @@ function jsonRpcError(id: string | number | null, code: number, message: string)
   return { jsonrpc: '2.0', error: { code, message }, id };
 }
 
-function apiResponse(statusCode: number, body: unknown): ApiResponse {
+function apiResponse(statusCode: number, body: unknown, additionalHeaders?: Record<string, string>): ApiResponse {
   return {
     statusCode,
     body: JSON.stringify(body),
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...additionalHeaders },
+  };
+}
+
+/**
+ * Create authorization error with reauth URL
+ * Based on mcp-gateway pattern for service authorization errors
+ */
+function createReauthError(requestId: unknown): { response: object; wwwAuthenticateHeader: string } {
+  const authUrl = `${BASE_URI}/oauth/authorize`;
+  const wwwAuthenticateHeader = `Bearer error="invalid_token", authorize_url="${authUrl}"`;
+
+  return {
+    response: {
+      jsonrpc: '2.0',
+      id: requestId || null,
+      error: {
+        code: -32001, // Standard code: service_authorization_required
+        message: 'Miro authentication expired or invalid.',
+        data: {
+          error_type: 'miro_auth_expired',
+          service: 'miro',
+          authorize_url: authUrl,
+          action_hint: 'Visit the authorize_url to reauthenticate with Miro, then retry this request',
+        },
+      },
+    },
+    wwwAuthenticateHeader,
   };
 }
 
@@ -208,7 +236,11 @@ class MiroFunctionHandler {
         if (!this.initialized) {
           const success = await this.initializeMiroClient();
           if (!success) {
-            return apiResponse(200, jsonRpcError(id, -32603, 'Failed to initialize Miro API'));
+            // Check if initialization failed due to auth issues
+            const reauth = createReauthError(id);
+            return apiResponse(200, reauth.response, {
+              'WWW-Authenticate': reauth.wwwAuthenticateHeader,
+            });
           }
         }
 
@@ -231,9 +263,18 @@ class MiroFunctionHandler {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
           };
           return apiResponse(200, jsonRpcSuccess(id, mcpResult));
-        } catch (error) {
+        } catch (error: any) {
+          // Check if this is an auth error from Miro API
+          const diagnostic = error.diagnostic;
+          if (diagnostic?.type === DiagnosticErrorType.AUTH_ERROR) {
+            const reauth = createReauthError(id);
+            return apiResponse(200, reauth.response, {
+              'WWW-Authenticate': reauth.wwwAuthenticateHeader,
+            });
+          }
+
+          // Other errors: return as MCP error
           const msg = error instanceof Error ? error.message : 'Tool execution failed';
-          // MCP spec: errors should also use content format with isError flag
           const mcpError = {
             content: [{ type: 'text', text: msg }],
             isError: true,
