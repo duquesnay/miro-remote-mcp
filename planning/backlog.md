@@ -21,6 +21,7 @@
 - [x] CAP-ERROR-HANDLING: User gets actionable error messages ✅ 2025-11-10
 - [x] CAP-CLAUDE-DESKTOP: User accesses Miro directly from Claude Desktop ✅ 2025-11-10
 - [x] CAP-REAUTH-FLOW: User receives reauthentication URL when Miro tokens expire ✅ 2025-11-27
+- [x] CAP-AUTH-STATUS: User checks authentication status and gets authorization URL ✅ 2025-11-27
 
 ### Configuration & Security
 
@@ -59,6 +60,10 @@
 ## In Progress
 
 (No items currently in progress)
+
+## Recently Completed (2025-11-27)
+
+- [x] CAP-AUTH-STATUS: User checks authentication status and gets authorization URL ✅ 2025-11-27
 
 ## Recently Completed (2025-11-24)
 
@@ -108,7 +113,7 @@
 
 ## Backlog Health
 
-**Total Capabilities Delivered**: 27 capabilities
+**Total Capabilities Delivered**: 28 capabilities
   - 16 MVP capabilities (Initial implementation)
   - 1 Feature (FEAT1 - parent_id)
   - 2 Performance (CAP-INSTANT-RESPONSE, CAP-BURST-PERFORMANCE)
@@ -116,9 +121,11 @@
   - 1 Infrastructure (CAP-HTTP-HANDLER - gateway-ready)
   - 1 Technical (TECH-TESTABILITY - unit test suite)
   - 1 Developer Experience (CAP-RICH-DIAGNOSTICS - error classification)
+  - 2 Infrastructure Capabilities (CAP-REAUTH-FLOW, CAP-AUTH-STATUS - 2025-11-27)
 
-**Recently Completed** (2025-11-25):
-  - CAP-RICH-DIAGNOSTICS: Error classification with actionable suggestions
+**Recently Completed** (2025-11-27):
+  - CAP-REAUTH-FLOW: Reauthentication error flow with authorize_url
+  - CAP-AUTH-STATUS: Auth status checking tool for proactive token management
 
 **Planned Work**: 9 items remaining
   - 2 High Priority (CAP-BATCH-CREATION, CAP-LAYOUT-ASSISTANCE)
@@ -137,7 +144,7 @@
   - Auth overhead: 90% reduction via token caching
   - Code duplication: -36 lines (DRY compliance improved)
 
-**Velocity**: 26 capabilities delivered across 2 development sessions (2025-11-10, 2025-11-24)
+**Velocity**: 28 capabilities delivered across 3 development sessions (2025-11-10, 2025-11-24, 2025-11-27)
 
 **Note**: All completed capabilities are production-ready and tested.
 
@@ -147,4 +154,5 @@
 - **v0.1.1** (2025-11-10 PM): Frame-based organization (FEAT1) + Performance optimizations (Quick Wins)
 - **v0.1.2** (2025-11-24): HTTP handler + Unit test suite (Gateway-ready + TECH-TESTABILITY)
 - **v0.1.3** (2025-11-25): Rich error diagnostics (CAP-RICH-DIAGNOSTICS)
-- **Current** (HEAD): 27 capabilities delivered, production-ready
+- **v0.1.4** (2025-11-27): Reauthentication flow (CAP-REAUTH-FLOW + CAP-AUTH-STATUS)
+- **Current** (HEAD): 28 capabilities delivered, production-ready
