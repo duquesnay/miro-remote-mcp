@@ -6,10 +6,14 @@
 # Usage:
 #   1. Copy .env.docker.example to .env and configure
 #   2. docker compose up -d
+#
+# Registry image (default): rg.fr-par.scw.cloud/fly-agile-prod/miro-mcp:latest
+# Local build: Comment out image and uncomment build
 
 services:
   miro-mcp:
-    build: .
+    image: rg.fr-par.scw.cloud/fly-agile-prod/miro-mcp:latest
+    # build: .
     restart: unless-stopped
     environment:
       - NODE_ENV=production

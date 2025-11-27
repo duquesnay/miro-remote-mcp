@@ -21,10 +21,10 @@ Using `git worktree` for deployment architecture changes (CI/CD workflows, Docke
 ### Proposed Decision Anchors
 
 **1. CI/CD Architecture: Docker Registry vs Build-on-Server**
-- **Decision**: Use GitHub Container Registry (ghcr.io) with images built in CI
-- **Rationale**: Faster deployments (pull vs build), consistent artifacts, easier rollbacks
+- **Decision**: Use Scaleway Container Registry (rg.fr-par.scw.cloud) with images built in CI
+- **Rationale**: Faster deployments (pull vs build), consistent artifacts, easier rollbacks, same registry as other Fly Agile services
 - **Trade-offs**: Requires registry authentication, slightly more complex workflow
-- **Context**: Migrated from tarball-upload + server-side build pattern
+- **Context**: Migrated from tarball-upload + server-side build pattern, then from GitHub Container Registry to Scaleway for consistency
 
 **2. Deployment Trigger Strategy: Tags vs Branch-based**
 - **Decision**: Main branch = production tag, dev branch = dev tag, feat/* branches = branch-name tag

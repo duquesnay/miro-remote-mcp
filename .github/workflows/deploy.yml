@@ -100,10 +100,10 @@ jobs:
       - name: Update docker-compose to use registry image
         run: |
           cd miro-mcp
-          # Convert repository name to lowercase for ghcr.io
-          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          # Replace build context with image from registry
-          sed -i.bak "s|build: \.|image: ghcr.io/$REPO_LOWER:${{ steps.version.outputs.image_tag }}|" docker-compose.yml
+          # Use Scaleway Container Registry
+          IMAGE="rg.fr-par.scw.cloud/fly-agile-prod/miro-mcp:${{ steps.version.outputs.image_tag }}"
+          # Replace image line with versioned tag
+          sed -i.bak "s|image: rg.fr-par.scw.cloud/fly-agile-prod/miro-mcp:latest|image: $IMAGE|" docker-compose.yml
           cat docker-compose.yml
 
       - name: Upload .env and docker-compose to server
@@ -114,20 +114,17 @@ jobs:
 
       - name: Pull image from registry
         run: |
-          # Convert repository name to lowercase for ghcr.io
-          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-
-          # NOTE: Server must be logged into ghcr.io already (one-time setup)
-          # Run this once on the server: echo "$GH_PAT" | docker login ghcr.io -u USERNAME --password-stdin
+          # NOTE: Server must be logged into Scaleway Container Registry already (one-time setup)
+          # Run this once on the server: docker login rg.fr-par.scw.cloud -u nologin -p $SCW_SECRET_KEY
 
           ssh root@${{ secrets.SERVER_HOST }} bash << EOF
           set -e
 
           # Pull the image
-          docker pull "ghcr.io/$REPO_LOWER:${{ steps.version.outputs.image_tag }}"
+          docker pull "rg.fr-par.scw.cloud/fly-agile-prod/miro-mcp:${{ steps.version.outputs.image_tag }}"
 
           # Tag as latest for docker-compose
-          docker tag "ghcr.io/$REPO_LOWER:${{ steps.version.outputs.image_tag }}" "ghcr.io/$REPO_LOWER:latest"
+          docker tag "rg.fr-par.scw.cloud/fly-agile-prod/miro-mcp:${{ steps.version.outputs.image_tag }}" "rg.fr-par.scw.cloud/fly-agile-prod/miro-mcp:latest"
           EOF
 
       - name: Deploy with docker-compose
@@ -183,6 +180,6 @@ jobs:
           echo "DEPLOYMENT SUCCESSFUL"
           echo "Environment: ${{ inputs.environment }}"
           echo "Version: ${{ steps.version.outputs.version }}"
-          echo "Image: ghcr.io/${{ github.repository }}:${{ steps.version.outputs.image_tag }}"
+          echo "Image: rg.fr-par.scw.cloud/fly-agile-prod/miro-mcp:${{ steps.version.outputs.image_tag }}"
           echo "Server: ${{ secrets.SERVER_HOST }}"
           echo "============================================"
