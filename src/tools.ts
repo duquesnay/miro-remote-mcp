@@ -1,5 +1,7 @@
 import { MiroClient } from './miro-client.js';
 import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js';
+import { BatchCreator } from './layouts/batch-creator.js';
+import { LayoutOptions } from './layouts/types.js';
 
 export const TOOL_DEFINITIONS = [
   // Authentication
@@ -312,6 +314,133 @@ export const TOOL_DEFINITIONS = [
     },
   },
 
+  // Batch Creation with Layouts
+  {
+    name: 'batch_create_sticky_notes',
+    description: 'Create multiple sticky notes with automatic layout (grid, row, column, tree, radial). Reduces conversation verbosity 10x for creating similar items.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        board_id: {
+          type: 'string',
+          description: 'The ID of the board',
+        },
+        items: {
+          type: 'array',
+          description: 'Array of sticky notes to create',
+          items: {
+            type: 'object',
+            properties: {
+              content: { type: 'string', description: 'HTML content' },
+              width: { type: 'number', description: 'Width (optional)' },
+              height: { type: 'number', description: 'Height (optional)' },
+              color: { type: 'string', description: 'Color name (optional)' },
+            },
+            required: ['content'],
+          },
+        },
+        layout: {
+          type: 'string',
+          description: 'Layout algorithm: grid (NxM), row (horizontal), column (vertical), tree (hierarchy), radial (circle)',
+          enum: ['grid', 'row', 'column', 'tree', 'radial'],
+        },
+        spacing: { type: 'number', description: 'Space between items (default: 50)' },
+        start_x: { type: 'number', description: 'Starting X coordinate (default: 0)' },
+        start_y: { type: 'number', description: 'Starting Y coordinate (default: 0)' },
+        rows: { type: 'number', description: 'Grid rows (auto-calculated if omitted)' },
+        cols: { type: 'number', description: 'Grid columns (auto-calculated if omitted)' },
+        radius: { type: 'number', description: 'Radial layout radius (default: 300)' },
+        orientation: { type: 'string', enum: ['vertical', 'horizontal'], description: 'Tree orientation (default: vertical)' },
+        parent_id: { type: 'string', description: 'Optional parent frame ID' },
+      },
+      required: ['board_id', 'items', 'layout'],
+    },
+  },
+  {
+    name: 'batch_create_shapes',
+    description: 'Create multiple shapes with automatic layout (grid, row, column, tree, radial).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        board_id: {
+          type: 'string',
+          description: 'The ID of the board',
+        },
+        items: {
+          type: 'array',
+          description: 'Array of shapes to create',
+          items: {
+            type: 'object',
+            properties: {
+              content: { type: 'string', description: 'HTML content' },
+              width: { type: 'number', description: 'Width (optional)' },
+              height: { type: 'number', description: 'Height (optional)' },
+            },
+            required: ['content'],
+          },
+        },
+        shape_type: {
+          type: 'string',
+          description: 'Shape type for all items',
+          enum: ['rectangle', 'circle', 'triangle', 'rhombus'],
+        },
+        layout: {
+          type: 'string',
+          description: 'Layout algorithm',
+          enum: ['grid', 'row', 'column', 'tree', 'radial'],
+        },
+        spacing: { type: 'number', description: 'Space between items (default: 50)' },
+        start_x: { type: 'number', description: 'Starting X coordinate (default: 0)' },
+        start_y: { type: 'number', description: 'Starting Y coordinate (default: 0)' },
+        rows: { type: 'number', description: 'Grid rows (auto-calculated if omitted)' },
+        cols: { type: 'number', description: 'Grid columns (auto-calculated if omitted)' },
+        radius: { type: 'number', description: 'Radial layout radius (default: 300)' },
+        orientation: { type: 'string', enum: ['vertical', 'horizontal'], description: 'Tree orientation' },
+        parent_id: { type: 'string', description: 'Optional parent frame ID' },
+      },
+      required: ['board_id', 'items', 'shape_type', 'layout'],
+    },
+  },
+  {
+    name: 'batch_create_text',
+    description: 'Create multiple text items with automatic layout (grid, row, column, tree, radial).',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        board_id: {
+          type: 'string',
+          description: 'The ID of the board',
+        },
+        items: {
+          type: 'array',
+          description: 'Array of text items to create',
+          items: {
+            type: 'object',
+            properties: {
+              content: { type: 'string', description: 'HTML content' },
+              width: { type: 'number', description: 'Width (optional)' },
+            },
+            required: ['content'],
+          },
+        },
+        layout: {
+          type: 'string',
+          description: 'Layout algorithm',
+          enum: ['grid', 'row', 'column', 'tree', 'radial'],
+        },
+        spacing: { type: 'number', description: 'Space between items (default: 50)' },
+        start_x: { type: 'number', description: 'Starting X coordinate (default: 0)' },
+        start_y: { type: 'number', description: 'Starting Y coordinate (default: 0)' },
+        rows: { type: 'number', description: 'Grid rows (auto-calculated if omitted)' },
+        cols: { type: 'number', description: 'Grid columns (auto-calculated if omitted)' },
+        radius: { type: 'number', description: 'Radial layout radius (default: 300)' },
+        orientation: { type: 'string', enum: ['vertical', 'horizontal'], description: 'Tree orientation' },
+        parent_id: { type: 'string', description: 'Optional parent frame ID' },
+      },
+      required: ['board_id', 'items', 'layout'],
+    },
+  },
+
   // Connectors
   {
     name: 'create_connector',
@@ -469,6 +598,70 @@ export async function handleToolCall(name: string, args: any, miroClient: MiroCl
           height: args.height,
           fillColor: args.fill_color,
         });
+
+      // Batch Creation with Layouts
+      case 'batch_create_sticky_notes': {
+        const batchCreator = new BatchCreator(miroClient);
+        const layoutOptions: LayoutOptions = {
+          layout: args.layout,
+          spacing: args.spacing,
+          startX: args.start_x,
+          startY: args.start_y,
+          rows: args.rows,
+          cols: args.cols,
+          radius: args.radius,
+          orientation: args.orientation,
+        };
+        return await batchCreator.createWithLayout(
+          args.board_id,
+          args.items,
+          'sticky_note',
+          layoutOptions,
+          { parentId: args.parent_id }
+        );
+      }
+
+      case 'batch_create_shapes': {
+        const batchCreator = new BatchCreator(miroClient);
+        const layoutOptions: LayoutOptions = {
+          layout: args.layout,
+          spacing: args.spacing,
+          startX: args.start_x,
+          startY: args.start_y,
+          rows: args.rows,
+          cols: args.cols,
+          radius: args.radius,
+          orientation: args.orientation,
+        };
+        return await batchCreator.createWithLayout(
+          args.board_id,
+          args.items,
+          'shape',
+          layoutOptions,
+          { parentId: args.parent_id, shapeType: args.shape_type }
+        );
+      }
+
+      case 'batch_create_text': {
+        const batchCreator = new BatchCreator(miroClient);
+        const layoutOptions: LayoutOptions = {
+          layout: args.layout,
+          spacing: args.spacing,
+          startX: args.start_x,
+          startY: args.start_y,
+          rows: args.rows,
+          cols: args.cols,
+          radius: args.radius,
+          orientation: args.orientation,
+        };
+        return await batchCreator.createWithLayout(
+          args.board_id,
+          args.items,
+          'text',
+          layoutOptions,
+          { parentId: args.parent_id }
+        );
+      }
 
       // Connectors
       case 'create_connector':

@@ -33,6 +33,20 @@ export const CACHE_CONFIG = {
   BOARD_TTL_MS: 5 * 60 * 1000,
 };
 
+// Layout Defaults
+export const LAYOUT_DEFAULTS = {
+  // Default spacing between items
+  SPACING: 50,
+  // Tree layout: vertical distance between levels
+  TREE_LEVEL_SPACING: 300,
+  // Tree layout: horizontal distance between siblings
+  TREE_SIBLING_SPACING: 50,
+  // Radial layout: distance from center
+  RADIAL_RADIUS: 300,
+  // Radial layout: starting angle in radians (0 = right)
+  RADIAL_START_ANGLE: 0,
+};
+
 // Miro API Defaults
 export const MIRO_DEFAULTS = {
   // Geometry defaults

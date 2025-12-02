@@ -59,7 +59,8 @@
 
 ## In Progress
 
-(No items currently in progress)
+- [⏳] CAP-BATCH-CREATION: User creates multiple similar items efficiently
+- [⏳] CAP-LAYOUT-ASSISTANCE: User gets suggested layouts for common patterns
 
 ## Recently Completed (2025-11-27)
 
@@ -92,8 +93,8 @@
 ### High Priority
 
 - [x] CAP-RICH-DIAGNOSTICS: Developer identifies failure root cause in one glance ✅ 2025-11-25
-- [ ] CAP-BATCH-CREATION: User creates multiple similar items efficiently
-- [ ] CAP-LAYOUT-ASSISTANCE: User gets suggested layouts for common patterns
+- [⏳] CAP-BATCH-CREATION: User creates multiple similar items efficiently
+- [⏳] CAP-LAYOUT-ASSISTANCE: User gets suggested layouts for common patterns
 
 ### Medium Priority
 
