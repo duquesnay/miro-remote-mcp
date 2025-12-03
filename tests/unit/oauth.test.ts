@@ -144,6 +144,63 @@ describe('OAuth2Manager', () => {
       expect(token).toBe('new-access-token');
     });
 
+    it('prevents parallel token refreshes (race condition)', async () => {
+      const oauth = new OAuth2Manager(
+        testClientId,
+        testClientSecret,
+        testRedirectUri,
+        undefined,
+        false
+      );
+
+      // Set token that expires in 2 minutes (within 5-minute buffer)
+      const expiringToken = {
+        ...mockTokens.valid,
+        expires_at: Date.now() + 2 * 60 * 1000, // 2 minutes from now
+      };
+      oauth.setTokensFromObject(expiringToken);
+
+      // Mock refresh response with a delay to simulate real API call
+      let refreshCallCount = 0;
+      axios.post.mockImplementation(() => {
+        refreshCallCount++;
+        return new Promise((resolve) => {
+          setTimeout(() => {
+            resolve({
+              data: {
+                access_token: 'refreshed-access-token',
+                refresh_token: 'refreshed-refresh-token',
+                expires_in: 3600,
+                token_type: 'Bearer',
+                scope: 'boards:read',
+              },
+            });
+          }, 50); // 50ms delay to simulate network latency
+        });
+      });
+
+      // Make 5 concurrent calls to getValidAccessToken
+      const promises = Array(5)
+        .fill(null)
+        .map(() => oauth.getValidAccessToken());
+
+      // Wait for all to complete
+      const tokens = await Promise.all(promises);
+
+      // All should return the same refreshed token
+      expect(tokens).toEqual([
+        'refreshed-access-token',
+        'refreshed-access-token',
+        'refreshed-access-token',
+        'refreshed-access-token',
+        'refreshed-access-token',
+      ]);
+
+      // Refresh should have been called only ONCE (not 5 times)
+      expect(refreshCallCount).toBe(1);
+      expect(axios.post).toHaveBeenCalledTimes(1);
+    });
+
     it('does not refresh when token has plenty of time', async () => {
       const oauth = new OAuth2Manager(
         testClientId,

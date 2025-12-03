@@ -20,6 +20,14 @@ export class OAuth2Manager {
   private persistTokens: boolean;
   private tokens: TokenData | null = null;
 
+  /**
+   * Lock to prevent parallel token refreshes (race condition prevention).
+   * When multiple concurrent requests detect an expired token, only one
+   * should actually call the Miro API to refresh. Others wait for the
+   * in-progress refresh to complete.
+   */
+  private refreshLock: Promise<void> | null = null;
+
   constructor(
     clientId: string,
     clientSecret: string,
@@ -136,9 +144,18 @@ export class OAuth2Manager {
   }
 
   /**
-   * Get valid access token, refreshing if necessary
+   * Get valid access token, refreshing if necessary.
+   *
+   * Race condition prevention: If multiple concurrent requests detect an expired
+   * token, only the first one initiates a refresh. Others wait for the in-progress
+   * refresh to complete via the refreshLock.
    */
   async getValidAccessToken(): Promise<string> {
+    // Wait for any in-progress refresh to complete
+    if (this.refreshLock) {
+      await this.refreshLock;
+    }
+
     if (!this.tokens) {
       await this.loadTokens();
     }
@@ -153,8 +170,18 @@ export class OAuth2Manager {
 
     // Only refresh if we have a refresh token and token is expiring
     if (shouldRefresh && this.tokens.refresh_token) {
-      console.error('[OAuth] Token expired or expiring soon, refreshing...');
-      await this.refreshAccessToken();
+      // Double-check: another request might have refreshed while we were waiting
+      if (!this.refreshLock) {
+        console.error('[OAuth] Token expired or expiring soon, refreshing...');
+        // Create the refresh lock to prevent parallel refreshes
+        this.refreshLock = this.refreshAccessToken()
+          .finally(() => {
+            // Always clear the lock when done (success or failure)
+            this.refreshLock = null;
+          });
+      }
+      // Wait for the refresh to complete
+      await this.refreshLock;
     } else if (shouldRefresh && !this.tokens.refresh_token) {
       console.error('[OAuth] Token expired but no refresh token available. Please re-authenticate.');
     }
