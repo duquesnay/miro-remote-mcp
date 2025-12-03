@@ -175,6 +175,7 @@ export class OAuth2Manager {
         console.error('[OAuth] Token expired or expiring soon, refreshing...');
         // Create the refresh lock to prevent parallel refreshes
         this.refreshLock = this.refreshAccessToken()
+          .then(() => {})
           .finally(() => {
             // Always clear the lock when done (success or failure)
             this.refreshLock = null;
