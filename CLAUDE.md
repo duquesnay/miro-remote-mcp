@@ -1,5 +1,25 @@
 # Miro MCP - Project Learnings
 
+## Miro API Limitations
+
+### Fonts (Sticky Notes)
+- **No direct font control** on sticky notes via REST API
+- Only 2 styles supported via API (not precisely documented)
+- Font size = function of sticky dimensions (width/height)
+- Basic HTML supported in content: `<strong>`, `<em>`, `<p>`
+- **Text color not modifiable** on stickies/cards
+
+### Z-Index / Layers
+- **REST API: No z-index control possible!**
+- Web SDK only: `bringToFront()`, `sendToBack()`, `bringInFrontOf(target)`
+- Frames always at bottom (parent container)
+- Items added to a frame inherit its layer index
+- Creation order = default stacking order
+
+**Sources:**
+- [Sticky Note Font Size](https://community.miro.com/developer-platform-forum-57/sticky-note-font-size-3958)
+- [Z-Index API Discussion](https://community.miro.com/developer-platform-forum-57/z-index-api-3456)
+
 ## Project Learnings
 
 ### 2025-11-26 - Docker Registry-Based Deployment Implementation
