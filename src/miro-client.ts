@@ -210,12 +210,20 @@ export class MiroClient {
 
   // Item Operations
   async listItems(boardId: string, type?: string): Promise<MiroItem[]> {
-    const params: any = {};
-    if (type) {
-      params.type = type;
-    }
-    const response = await this.client.get(`/boards/${boardId}/items`, { params });
-    return response.data.data || [];
+    const items: MiroItem[] = [];
+    let cursor: string | undefined;
+
+    do {
+      const params: Record<string, string> = { limit: '50' };
+      if (type) params.type = type;
+      if (cursor) params.cursor = cursor;
+
+      const response = await this.client.get(`/boards/${boardId}/items`, { params });
+      items.push(...(response.data.data || []));
+      cursor = response.data.cursor;
+    } while (cursor);
+
+    return items;
   }
 
   async getItem(boardId: string, itemId: string): Promise<MiroItem> {
