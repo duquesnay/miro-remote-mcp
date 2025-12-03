@@ -106,6 +106,7 @@
 - [x] CAP-LAYOUT-ASSISTANCE: User gets suggested layouts for common patterns ✅ 2025-12-02
 - [ ] CAP-BOARD-SYNC: Agent AI retrieves complete board snapshot in single request
 - [ ] CAP-BATCH-UPDATE: Agent AI updates multiple items atomically
+- [ ] **EPIC-SDK-BRIDGE**: Agent AI accesses Web SDK features (z-index, selection, grouping) via bridge app
 
 ### Medium Priority
 
@@ -266,6 +267,52 @@ These capabilities emerged from real-world usage of the MCP server on a complex 
 
 ---
 
+---
+
+## EPIC-SDK-BRIDGE: Web SDK Bridge App (Added 2025-12-03)
+
+**Outcome**: Agent AI controls z-index, selection, and grouping via Miro Web SDK bridge
+
+### Overview
+
+REST API cannot control z-index, selection, or grouping. These features require the Web SDK which only runs in-browser. This epic creates a Miro App that bridges our MCP server to Web SDK capabilities via WebSocket.
+
+**Architecture**: MCP Server ↔ WebSocket ↔ Miro App (iframe) ↔ Web SDK
+
+**Constraint**: Board must be open in browser with app active (mitigated by Playwright/Chromium MCP automation)
+
+### Capabilities
+
+| ID | Capability | Tool |
+|----|------------|------|
+| CAP-ZINDEX-FRONT | Agent brings item to front | `sdk_bring_to_front(board_id, item_id)` |
+| CAP-ZINDEX-BACK | Agent sends item to back | `sdk_send_to_back(board_id, item_id)` |
+| CAP-SELECTION-READ | Agent sees user's selection | `sdk_get_selection(board_id)` |
+| CAP-SELECTION-WRITE | Agent selects items | `sdk_select(board_id, item_ids[])` |
+| CAP-GROUPING | Agent groups items | `sdk_group(board_id, item_ids[])` |
+| CAP-UNGROUPING | Agent ungroups items | `sdk_ungroup(board_id, group_id)` |
+
+**Value**: Bidirectional interaction - Claude sees what user selected and can manipulate layer order
+
+### Components
+
+| Component | Effort | Files |
+|-----------|--------|-------|
+| Miro App (Web SDK) | 2-3 days | `miro-bridge-app/` (new project) |
+| WebSocket Hub | 1-2 days | `src/websocket-hub.ts` (new) |
+| MCP Tools | 1 day | `src/tools.ts` (extend) |
+| Infrastructure | 0.5 day | Docker, Miro Developer Portal |
+| Tests & Debug | 1-2 days | Integration tests |
+| **TOTAL** | **5-8 days** | |
+
+### References
+
+- [Feasibility Study](/Users/guillaume/.claude/plans/cached-painting-codd.md)
+- [miro-breakout-chat-app](https://github.com/miroapp/miro-breakout-chat-app) - Socket.IO pattern
+- [Miro Web SDK Reference](https://developers.miro.com/docs/web-sdk-reference-guide)
+
+---
+
 ### Technical Capabilities (From Review 2025-12-02)
 
 - [ ] TECH1: User creates tree diagrams at scale without waiting (vs 30s for 100 nodes)
@@ -320,7 +367,8 @@ These capabilities emerged from real-world usage of the MCP server on a complex 
   - CAP-LAYOUT-ASSISTANCE: 5 layout algorithms (grid, row, column, tree, radial)
   - Full code quality review (code-quality, architecture, performance, integration)
 
-**Planned Work**: 19 items remaining (updated 2025-12-03)
+**Planned Work**: 20 items remaining (updated 2025-12-03)
+  - 1 Epic: EPIC-SDK-BRIDGE (Web SDK bridge for z-index, selection, grouping - 5-8 days)
   - 2 High Priority features (CAP-BOARD-SYNC, CAP-BATCH-UPDATE)
   - 6 Medium Priority features (CAP-BOARD-TEMPLATES, CAP-ITEM-SEARCH, CAP-BOARD-EXPORT, CAP-CHANGE-DETECTION, CAP-SPATIAL-SEARCH, CAP-STRUCTURED-INVENTORY)
   - 3 Low Priority features (CAP-IMAGE-UPLOAD, CAP-BOARD-PERMISSIONS, CAP-COMMENTS)
