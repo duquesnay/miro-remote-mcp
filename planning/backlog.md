@@ -83,53 +83,93 @@
 - [x] OPS1: Operator sees accurate authentication status in health check ✅ 2025-11-24
 - [x] TECH4: Gateway client accesses MCP at clean root URL ✅ 2025-11-24
 
-## Planned
+## Planned (Reorganized by Strategic Priority - 2025-12-03)
 
-### Priority Rationale
+### Priority Framework (Updated After Quality Review)
 
-**High Priority**: Foundation + Highest ROI (effort vs user value)
-- CAP-RICH-DIAGNOSTICS: Foundation capability - error clarity blocks debugging and enables production usage for ALL future capabilities ✅
-- CAP-BATCH-CREATION: Reduces conversation verbosity 10x for repetitive tasks (10 messages → 1 command) ✅
-- CAP-LAYOUT-ASSISTANCE: Eliminates coordinate calculation burden for structured diagrams ✅
-- **CAP-BOARD-SYNC**: Foundation for collaborative workflow - reduces 10-20 API calls to 1, enables change detection
-- **CAP-BATCH-UPDATE**: 10x latency reduction for repositioning tasks (proven need from org chart work)
+**🔴 Critical (Production Blockers)**: Safety nets required before production usage
+- Testing pyramid inverted (73 unit, 0 integration, 0 E2E) = cannot validate production readiness
+- OAuth race condition = data safety risk under concurrent load
+- Dependency version ranges = unpredictable deployment failures
 
-**Medium Priority**: Important UX improvements, moderate effort
-- CAP-BOARD-TEMPLATES: Reduces time-to-first-board for common patterns (org charts, kanban, etc.)
-- CAP-ITEM-SEARCH: Enables navigation in boards with 50+ items without visual scanning
-- CAP-BOARD-EXPORT: Enables backup/versioning workflows and documentation generation
-- **CAP-CHANGE-DETECTION**: Prevents human-AI conflicts, enables "human structures, AI fills" pattern
-- **CAP-SPATIAL-SEARCH**: Location-based queries without parsing all items (complements BOARD-SYNC)
-- **CAP-STRUCTURED-INVENTORY**: Automatic board comprehension for complex hierarchies
+**🟡 High Priority**: Blocking user workflows OR high-leverage quick wins
+- TECH1 (tree parallelization): 1 hour work → 92% performance gain for blocking use case
+- TECH4-5 (cleanup): 3 hours total → cleaner codebase, faster builds
+- Feature capabilities that enable new workflows
 
-**Low Priority**: Nice-to-have features, uncertain demand
-- CAP-IMAGE-UPLOAD: Media-rich boards (use case unvalidated)
-- CAP-BOARD-PERMISSIONS: Collaboration features (solo usage primary)
-- CAP-COMMENTS: Annotation features (low demand signal)
+**🟢 Medium Priority**: Important quality/performance improvements
+- Caching layer (TECH6-7): Eliminates redundant API calls
+- Rate limit handling (TECH-RATE-LIMITS): Graceful degradation
+- DRY violations (TECH2): Maintenance burden reduction
+- Architecture refactoring (TECH3): SOLID compliance
 
-### High Priority
+**⚪ Low Priority**: Nice-to-have features with uncertain demand
 
-- [x] CAP-RICH-DIAGNOSTICS: Developer identifies failure root cause in one glance ✅ 2025-11-25
-- [x] CAP-BATCH-CREATION: User creates multiple similar items efficiently ✅ 2025-12-02
-- [x] CAP-LAYOUT-ASSISTANCE: User gets suggested layouts for common patterns ✅ 2025-12-02
-- [x] CAP-BOARD-SYNC: Agent AI retrieves complete board snapshot in single request ✅ 2025-12-03
-- [x] CAP-BATCH-UPDATE: Agent AI updates multiple items atomically ✅ 2025-12-03
-- [ ] **EPIC-SDK-BRIDGE**: Agent AI accesses Web SDK features (z-index, selection, grouping) via bridge app
+---
 
-### Medium Priority
+### 🔴 CRITICAL: Production Blockers (Must Complete Before v2.0)
 
-- [ ] CAP-BOARD-TEMPLATES: User starts from common diagram types
-- [ ] CAP-ITEM-SEARCH: User finds elements by content or properties
-- [ ] CAP-BOARD-EXPORT: User captures board state
-- [ ] CAP-CHANGE-DETECTION: Agent AI detects board changes since last read
-- [ ] CAP-SPATIAL-SEARCH: Agent AI finds items in geographic zone
-- [ ] CAP-STRUCTURED-INVENTORY: Agent AI understands board hierarchy automatically
+**Total Effort**: 6-8 days | **Items**: 4
 
-### Low Priority
+1. [ ] **TECH-E2E-PROTOCOL**: Developer validates MCP protocol end-to-end (0 → 5+ scenarios) - **2-3 days**
+2. [ ] **TECH-INTEGRATION-MIRO**: Developer validates live Miro API integration (0 → 8+ scenarios) - **3-4 days**
+3. [ ] **TECH-OAUTH-RACE**: System refreshes tokens safely under concurrent requests - **4 hours**
+4. [ ] **TECH-DEPS-PINNED**: Team deploys with known-good dependency versions - **15 minutes**
 
-- [ ] CAP-IMAGE-UPLOAD: User adds images to boards
-- [ ] CAP-BOARD-PERMISSIONS: User controls board access
-- [ ] CAP-COMMENTS: User adds contextual notes
+**Rationale**: Zero integration/E2E tests = cannot validate production readiness. OAuth race = data corruption risk. These are non-negotiable safety nets.
+
+---
+
+### 🟡 HIGH: Quick Wins + Blocking Workflows
+
+**Total Effort**: 2-3 days | **Items**: 3
+
+5. [ ] **TECH1**: Developer creates tree diagrams at scale (30s → 2s, -92%) - **1 hour**
+   - **Blocking**: Large tree layouts unusable at current performance
+   - **ROI**: Highest leverage - 1h work for 10x UX improvement
+
+6. [ ] **TECH4**: Developer works with clean production build (1200 lines → 0) - **2 hours**
+   - **Quick win**: Move test files out of src/, cleaner deployments
+
+7. [ ] **TECH5**: Developer navigates layout code without dead paths - **1 hour**
+   - **Quick win**: Remove unreachable custom layout code
+
+---
+
+### 🟢 MEDIUM: Quality & Performance Improvements
+
+**Total Effort**: 4-5 days | **Items**: 6
+
+8. [ ] **TECH6**: Agent AI responds instantly for repeated searches (5000ms → 0ms) - **4 hours**
+9. [ ] **TECH7**: System maintains stable memory under high usage - **2 hours**
+10. [ ] **TECH-RATE-LIMITS**: System queues requests under rate limits - **1 day**
+11. [ ] **TECH-PAGINATION**: System limits unbounded searches - **2 hours**
+12. [ ] **TECH2**: Developer modifies batch creation logic once (3 files → 1) - **1 day**
+13. [ ] **TECH3**: Developer extends auth logic with full type safety - **1 day**
+
+---
+
+### 🟢 MEDIUM: Feature Capabilities
+
+**Total Effort**: Variable | **Items**: 5
+
+14. [ ] **CAP-BOARD-TEMPLATES**: User starts from common diagram types
+15. [ ] **CAP-ITEM-SEARCH**: User finds elements by content or properties
+16. [ ] **CAP-BOARD-EXPORT**: User captures board state
+17. [ ] **CAP-CHANGE-DETECTION**: Agent AI detects board changes since last read
+18. [ ] **CAP-SPATIAL-SEARCH**: Agent AI finds items in geographic zone
+19. [ ] **CAP-STRUCTURED-INVENTORY**: Agent AI understands board hierarchy automatically
+
+---
+
+### ⚪ LOW: Future Enhancements
+
+**Items**: 4
+
+20. [ ] **EPIC-SDK-BRIDGE**: Agent AI accesses Web SDK features (z-index, selection, grouping) - **5-8 days**
+21. [ ] **CAP-IMAGE-UPLOAD**: User adds images to boards
+22. [ ] **CAP-BOARD-PERMISSIONS**: User controls board access
+23. [ ] **CAP-COMMENTS**: User adds contextual notes
 
 ---
 
@@ -321,16 +361,96 @@ REST API cannot control z-index, selection, or grouping. These features require 
 
 ---
 
-### Technical Capabilities (From Review 2025-12-02)
+### Critical Safety Nets (Production Blockers - Added 2025-12-03)
 
-- [ ] TECH1: User creates tree diagrams at scale without waiting (vs 30s for 100 nodes)
-- [ ] TECH2: Developer modifies batch creation logic in single location (vs 3 duplicate handlers)
-- [ ] TECH3: Developer extends auth logic with full type safety (vs type assertion hack)
-- [ ] TECH4: Developer works with clean production build (vs test files in dist/)
-- [ ] TECH5: Developer navigates layout code without dead paths (vs unused custom layout)
-- [ ] TECH6: System responds instantly for repeated item queries (vs re-fetching every time)
-- [ ] TECH7: System maintains stable memory under high board usage (vs unbounded cache growth)
-- [ ] TECH8: Developer deploys with confidence OAuth and MCP protocol work correctly
+**🔴 Red Zone Alert**: Testing pyramid inverted - 73 unit tests but ZERO integration/E2E tests
+
+- [ ] **TECH-E2E-PROTOCOL**: Developer validates MCP protocol compliance end-to-end (0 → 5+ scenarios)
+  - **Current**: No protocol-level tests - cannot verify tools/list, tools/call handshake
+  - **Target**: 5+ E2E scenarios (auth flow, tool discovery, create/read/update operations)
+  - **Value**: Prevents protocol regressions that break Claude Desktop integration
+  - **Blocking**: Production readiness - cannot ship without protocol validation
+  - **Effort**: 2-3 days
+
+- [ ] **TECH-INTEGRATION-MIRO**: Developer validates live Miro API integration (0 → 8+ scenarios)
+  - **Current**: No live API tests - OAuth race condition, serialization bugs undetected
+  - **Target**: 8+ integration tests (OAuth flow, token refresh, CRUD operations, error handling)
+  - **Value**: Catches JSON serialization, async handling, real API contract issues
+  - **Blocking**: Data safety - OAuth race can corrupt tokens under load
+  - **Effort**: 3-4 days
+
+- [ ] **TECH-OAUTH-RACE**: System refreshes tokens safely under concurrent requests (race condition → mutex)
+  - **Current**: OAuth2Manager has race condition - concurrent calls can double-refresh
+  - **Target**: Token refresh with mutex lock, single refresh per expiry
+  - **Value**: Prevents token corruption under load, data safety invariant
+  - **Blocking**: Production stability under concurrent usage
+  - **Effort**: 4 hours
+
+- [ ] **TECH-DEPS-PINNED**: Team deploys with known-good dependency versions (ranges → exact pins)
+  - **Current**: `^` and `~` ranges allow breaking changes (axios ^1.7.9, @modelcontextprotocol/sdk ^1.0.4)
+  - **Target**: Exact pins in package.json, CI validates no drift
+  - **Value**: Prevents surprise breakage from transitive dependency updates
+  - **Blocking**: Deployment reliability
+  - **Effort**: 15 minutes
+
+### Code Quality & Architecture (Yellow Zone - From Review 2025-12-02)
+
+- [ ] **TECH1**: Developer creates tree diagrams at scale without waiting (30s → 2s for 100 nodes, -92%)
+  - **Current**: Sequential connector creation - 25s for 100-node tree
+  - **Target**: Parallel connector creation using Promise.all - 2s
+  - **Value**: Makes large tree layouts actually usable
+  - **Impact**: High ROI - 1 hour implementation, massive UX improvement
+  - **Effort**: 1 hour
+
+- [ ] **TECH2**: Developer modifies batch creation logic once (3 files → 1 module)
+  - **Current**: ~200 lines duplicate schema definitions (board_id repeated 18x)
+  - **Target**: Extract schema constants module, DRY violations eliminated
+  - **Value**: Maintenance burden -60%, consistency guaranteed
+  - **Effort**: 1 day
+
+- [ ] **TECH3**: Developer extends auth logic with full type safety (type assertion → interface)
+  - **Current**: `(miroClient as any).oauth` security smell - bypasses TypeScript
+  - **Target**: Extract TokenProvider interface, inject dependency
+  - **Value**: Enables isolated testing, SOLID DIP compliance
+  - **Effort**: 1 day (includes TECH-OAUTH-RACE fix)
+
+- [ ] **TECH4**: Developer works with clean production build (1200 lines debug code → 0)
+  - **Current**: 24% of src/ is test/debug files (test-mcp-server.ts, example-boards.ts)
+  - **Target**: Move to test/ directory, exclude from dist/
+  - **Value**: Clean deployments, faster builds
+  - **Effort**: 2 hours
+
+- [ ] **TECH5**: Developer navigates layout code without dead paths (unused custom layout removed)
+  - **Current**: Unreachable custom layout code path in batch creation
+  - **Target**: Remove dead code, simplify conditional logic
+  - **Value**: Reduced cognitive load, clearer intent
+  - **Effort**: 1 hour
+
+### Performance Optimizations (Quick Wins - From Review 2025-12-02)
+
+- [ ] **TECH6**: Agent AI responds instantly for repeated searches (5000ms → 0ms, -100%)
+  - **Current**: No item list caching - searches refetch 1000+ items every time
+  - **Target**: TTL-based cache (30s) for list_items results
+  - **Value**: Eliminates redundant API calls for common query patterns
+  - **Effort**: 4 hours
+
+- [ ] **TECH7**: System maintains stable memory under high usage (unbounded cache → TTL + LRU)
+  - **Current**: No cache eviction - long-running processes can OOM
+  - **Target**: TTL-based eviction + max size limit (LRU)
+  - **Value**: Production stability for long sessions
+  - **Effort**: 2 hours (extends TECH6)
+
+- [ ] **TECH-RATE-LIMITS**: System queues requests under rate limits (fail → retry queue)
+  - **Current**: Rate limits tracked but not enforced - requests fail
+  - **Target**: Request queue with exponential backoff when approaching limits
+  - **Value**: Graceful degradation instead of errors
+  - **Effort**: 1 day
+
+- [ ] **TECH-PAGINATION**: System limits unbounded searches (1000+ items → configurable max)
+  - **Current**: Pagination fetches ALL items for searches (memory/latency issue)
+  - **Target**: Configurable max_items parameter with sensible defaults
+  - **Value**: Prevents memory/latency issues on huge boards
+  - **Effort**: 2 hours
 
 ### API Limitations (Not Fixable)
 
@@ -357,10 +477,12 @@ REST API cannot control z-index, selection, or grouping. These features require 
 - [x] ~~OPS-SCALEWAY: Deploy to Scaleway Functions~~ → Deprecated: HTTP gateway approach preferred
 - [x] ~~CAP-STDIO-TRANSPORT: Local stdio transport~~ → Deprecated: HTTP-only deployment
 
-## Backlog Health
+## Backlog Health (Updated 2025-12-03)
 
-**Total Capabilities Delivered**: 30 capabilities
-  - 16 MVP capabilities (Initial implementation)
+### Delivery Summary
+
+**Total Capabilities Delivered**: 32 capabilities
+  - 16 MVP capabilities (Initial implementation - 2025-11-10)
   - 1 Feature (FEAT1 - parent_id)
   - 2 Performance (CAP-INSTANT-RESPONSE, CAP-BURST-PERFORMANCE)
   - 2 Technical (TECH-CLARITY, TECH-MAINTAINABILITY)
@@ -369,30 +491,81 @@ REST API cannot control z-index, selection, or grouping. These features require 
   - 1 Developer Experience (CAP-RICH-DIAGNOSTICS - error classification)
   - 2 Infrastructure Capabilities (CAP-REAUTH-FLOW, CAP-AUTH-STATUS - 2025-11-27)
   - 2 Batch/Layout Capabilities (CAP-BATCH-CREATION, CAP-LAYOUT-ASSISTANCE - 2025-12-02)
+  - 2 Collaborative Workflow (CAP-BOARD-SYNC, CAP-BATCH-UPDATE - 2025-12-03)
 
-**Recently Completed** (2025-12-02):
-  - CAP-BATCH-CREATION: Batch creation of sticky notes, shapes, and text items
-  - CAP-LAYOUT-ASSISTANCE: 5 layout algorithms (grid, row, column, tree, radial)
-  - Full code quality review (code-quality, architecture, performance, integration)
+**Recently Completed** (2025-12-03):
+  - CAP-BOARD-SYNC: Complete board snapshot in single request (10-20 calls → 1)
+  - CAP-BATCH-UPDATE: Atomic multi-item updates with parallel execution
+  - OPS-TOKEN-PERSIST: Tokens persist across deployments without re-auth
+  - **Quality Review**: 4-specialist comprehensive analysis (code-quality, architecture, performance, integration)
 
-**Planned Work**: 20 items remaining (updated 2025-12-03)
-  - 1 Epic: EPIC-SDK-BRIDGE (Web SDK bridge for z-index, selection, grouping - 5-8 days)
-  - 2 High Priority features (CAP-BOARD-SYNC, CAP-BATCH-UPDATE)
-  - 6 Medium Priority features (CAP-BOARD-TEMPLATES, CAP-ITEM-SEARCH, CAP-BOARD-EXPORT, CAP-CHANGE-DETECTION, CAP-SPATIAL-SEARCH, CAP-STRUCTURED-INVENTORY)
-  - 3 Low Priority features (CAP-IMAGE-UPLOAD, CAP-BOARD-PERMISSIONS, CAP-COMMENTS)
-  - 8 Technical Capabilities (TECH1-8 from review 2025-12-02)
+### Quality Review Findings (2025-12-03)
 
-**Collaborative Workflow Capabilities** (added 2025-12-03):
-  - Based on real-world usage with complex organizational boards
-  - 5 new capabilities for human-AI collaboration
-  - Priority: 2 High (SYNC, BATCH-UPDATE), 3 Medium (CHANGE-DETECTION, SPATIAL-SEARCH, STRUCTURED-INVENTORY)
-  - Total complexity: 2M + 2L (foundation + sophisticated features)
+**Critical Issues Identified**:
+- 🔴 **Testing Pyramid Inverted**: 73 unit tests, 0 integration tests, 0 E2E tests
+- 🔴 **OAuth Race Condition**: Token refresh unsafe under concurrent load
+- 🔴 **Dependency Ranges**: Version ranges allow breaking changes
+- 🟡 **Performance Bottlenecks**: Sequential tree creation (25s → 2s possible), no caching
+- 🟡 **DRY Violations**: ~200 lines duplicate schemas (board_id repeated 18x)
+- 🟡 **Architecture Gaps**: Type assertions bypass safety, missing DIP compliance
 
-**Technical Investment Ratio**: 42% (8 of 19 remaining items)
-  - **Status**: 🟡 Yellow Zone (40-60%) - Tech debt present but balanced
-  - TECH1 (tree scale) is **blocking** for production tree layouts
-  - Quick wins: TECH4, TECH5 (cleanup, 1h total)
-  - **Recommendation**: Alternate new features (CAP-BOARD-SYNC first) with tech debt (TECH1-3)
+**Cross-Cutting Themes**:
+- All 4 specialists flagged testing gaps as **critical blocker**
+- Performance optimizations = quick wins (1-4 hours each for major improvements)
+- Code quality issues are moderate (7.5/10) but fixable
+
+### Technical Investment Ratio Analysis
+
+**Current Backlog Composition** (23 items total):
+- **Technical capabilities**: 13 items (TECH-E2E-PROTOCOL, TECH-INTEGRATION-MIRO, TECH-OAUTH-RACE, TECH-DEPS-PINNED, TECH1-7, TECH-RATE-LIMITS, TECH-PAGINATION)
+- **Feature capabilities**: 9 items (CAP-BOARD-TEMPLATES through CAP-STRUCTURED-INVENTORY)
+- **Epics**: 1 item (EPIC-SDK-BRIDGE)
+
+**Technical Investment Ratio**: **57% (13 of 23 items)**
+
+**Zone Classification**: 🔴 **RED ZONE (>40% technical effort)**
+
+**Health Assessment**:
+- **Root Cause**: Quality review revealed critical testing gaps - not routine debt
+- **Severity**: Production blockers (E2E/integration tests) + data safety (OAuth race)
+- **Duration**: Temporary spike - after safety nets, ratio drops to ~35% (Yellow)
+- **Action Required**: PAUSE new features until safety nets complete
+
+### Recommended Strategy
+
+**Phase 1: Safety Nets (MANDATORY - 6-8 days)**
+1. TECH-E2E-PROTOCOL (2-3 days) - Cannot ship without protocol validation
+2. TECH-INTEGRATION-MIRO (3-4 days) - Cannot validate API integration
+3. TECH-OAUTH-RACE (4 hours) - Data corruption risk
+4. TECH-DEPS-PINNED (15 minutes) - Deployment stability
+
+**Phase 2: Quick Wins (2-3 days)**
+5. TECH1 (1 hour) - Unblocks tree layouts, 92% performance gain
+6. TECH4 (2 hours) - Clean builds
+7. TECH5 (1 hour) - Code clarity
+
+**Phase 3: Return to Feature Velocity**
+- After Phase 1+2: Technical ratio drops to 6/23 = **26% (Yellow Zone)**
+- Resume feature development with confidence
+- Alternate quality improvements (TECH6-7, TECH2-3) with features
+
+**Investment Justification**:
+- Current RED zone is **quality debt**, not routine maintenance
+- Testing pyramid inversion = existential risk to production
+- 6-8 day investment prevents future 10x debugging/rework costs
+- Post-safety-nets: Return to healthy 25-30% technical investment
+
+### Velocity Metrics
+
+**Delivery Rate**: 32 capabilities across 6 development sessions (Nov 10 - Dec 3)
+  - Average: ~5 capabilities per session
+  - Quality review identified gaps despite high velocity = need for safety gates
+
+**Effort Remaining** (excluding low priority):
+  - Critical: 6-8 days (safety nets)
+  - High: 2-3 days (quick wins)
+  - Medium: 8-10 days (quality + features)
+  - **Total to Yellow Zone**: 16-21 days
 
 **Architecture Decisions** (2025-12-02):
   - ~~Scaleway Functions~~ → HTTP gateway deployment only
