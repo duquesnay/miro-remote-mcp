@@ -216,15 +216,6 @@ export class MCPTestClient extends EventEmitter {
   }
 
   /**
-   * Get stderr logs captured so far
-   */
-  getStderrLogs(): string[] {
-    const logs: string[] = [];
-    this.on('stderr', (log) => logs.push(log));
-    return logs;
-  }
-
-  /**
    * Shutdown the server process
    */
   async shutdown(): Promise<void> {
