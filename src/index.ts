@@ -5,36 +5,31 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { readFileSync } from 'fs';
 import dotenv from 'dotenv';
 import { OAuth2Manager } from './oauth.js';
 import { MiroClient } from './miro-client.js';
 import { TOOL_DEFINITIONS, handleToolCall } from './tools.js';
-import { CONFIG_PATHS, OAUTH_CONFIG } from './config.js';
+import { CONFIG_PATHS, OAUTH_CONFIG, getCredentials } from './config.js';
 
-// Load environment variables (fallback)
+// Load environment variables
 dotenv.config();
 
-// Load configuration from ~/.config/mcps/miro-dev/
-const credentialsPath = CONFIG_PATHS.credentials;
-const tokensPath = CONFIG_PATHS.tokens;
-
-let credentials: any;
+// Load credentials from environment variables
+let credentials: { clientId: string; clientSecret: string };
 try {
-  credentials = JSON.parse(readFileSync(credentialsPath, 'utf-8'));
-  console.error(`[MCP] Loaded credentials from ${credentialsPath}`);
-} catch (error) {
-  console.error(`[MCP] Error: Could not load credentials from ${credentialsPath}`);
-  console.error(`[MCP] Please create the file with clientId, clientSecret, and redirectUri`);
+  credentials = getCredentials();
+  console.error('[MCP] Loaded credentials from environment');
+} catch (error: any) {
+  console.error(`[MCP] Error: ${error.message}`);
   process.exit(1);
 }
 
-// Initialize OAuth2 manager with config file paths
+// Initialize OAuth2 manager
 const oauth = new OAuth2Manager(
   credentials.clientId,
   credentials.clientSecret,
-  credentials.redirectUri || OAUTH_CONFIG.DEFAULT_REDIRECT_URI,
-  tokensPath
+  OAUTH_CONFIG.DEFAULT_REDIRECT_URI,
+  CONFIG_PATHS.tokensFile
 );
 
 // Initialize Miro client

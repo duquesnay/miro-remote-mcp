@@ -4,37 +4,33 @@
  */
 import http from 'http';
 import { URL } from 'url';
-import { readFileSync } from 'fs';
+import dotenv from 'dotenv';
 import { OAuth2Manager } from './oauth.js';
-import { CONFIG_PATHS, OAUTH_CONFIG } from './config.js';
+import { CONFIG_PATHS, OAUTH_CONFIG, getCredentials } from './config.js';
 
-// Load credentials from config directory
-const credentialsPath = CONFIG_PATHS.credentials;
-const tokensPath = CONFIG_PATHS.tokens;
+// Load environment variables
+dotenv.config();
 
-let credentials: any;
+// Load credentials from environment variables
+let credentials: { clientId: string; clientSecret: string };
 try {
-  credentials = JSON.parse(readFileSync(credentialsPath, 'utf-8'));
-  console.log(`✓ Loaded credentials from ${credentialsPath}\n`);
-} catch (error) {
-  console.error(`\n❌ Error: Could not load credentials from ${credentialsPath}`);
-  console.error('   Please create the file with the following structure:');
-  console.error('   {');
-  console.error('     "clientId": "your_client_id",');
-  console.error('     "clientSecret": "your_client_secret",');
-  console.error('     "redirectUri": "http://localhost:3003/oauth/callback"');
-  console.error('   }\n');
+  credentials = getCredentials();
+  console.log('✓ Loaded credentials from environment\n');
+} catch (error: any) {
+  console.error(`\n❌ Error: ${error.message}`);
+  console.error('   Set MIRO_CLIENT_ID_B64 and MIRO_CLIENT_SECRET_B64 in .env\n');
   process.exit(1);
 }
 
 const PORT = OAUTH_CONFIG.CALLBACK_PORT;
+const tokensPath = CONFIG_PATHS.tokensFile;
 
 console.log('=== Miro OAuth2 Token Helper ===\n');
 
 const oauth = new OAuth2Manager(
   credentials.clientId,
   credentials.clientSecret,
-  credentials.redirectUri || 'http://localhost:3003/oauth/callback',
+  OAUTH_CONFIG.DEFAULT_REDIRECT_URI,
   tokensPath
 );
 

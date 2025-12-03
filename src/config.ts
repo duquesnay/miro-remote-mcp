@@ -1,6 +1,4 @@
 // Configuration constants for Miro MCP Server
-import { homedir } from 'os';
-import { join } from 'path';
 
 // OAuth Configuration
 export const OAUTH_CONFIG = {
@@ -74,13 +72,22 @@ export const MIRO_DEFAULTS = {
 
 // Configuration Paths
 export const CONFIG_PATHS = {
-  get configDir(): string {
-    return process.env.MIRO_CONFIG_DIR || join(homedir(), '.config', 'mcps', 'miro-dev');
-  },
-  get credentials(): string {
-    return join(this.configDir, 'credentials.json');
-  },
-  get tokens(): string {
-    return join(this.configDir, 'tokens.json');
+  get tokensFile(): string {
+    return process.env.TOKENS_FILE || '/data/tokens.json';
   },
 };
+
+// Credentials from environment variables (base64 encoded)
+export function getCredentials(): { clientId: string; clientSecret: string } {
+  const clientIdB64 = process.env.MIRO_CLIENT_ID_B64;
+  const clientSecretB64 = process.env.MIRO_CLIENT_SECRET_B64;
+
+  if (!clientIdB64 || !clientSecretB64) {
+    throw new Error('Missing MIRO_CLIENT_ID_B64 or MIRO_CLIENT_SECRET_B64 environment variables');
+  }
+
+  return {
+    clientId: Buffer.from(clientIdB64, 'base64').toString('utf-8'),
+    clientSecret: Buffer.from(clientSecretB64, 'base64').toString('utf-8'),
+  };
+}
