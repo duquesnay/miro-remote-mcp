@@ -14,6 +14,7 @@
     "test": "vitest run",
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
+    "test:integration:miro": "vitest run tests/integration/miro-api.test.ts",
     "test:watch": "vitest",
     "test:api": "tsx src/test-api.ts",
     "test:mcp": "tsx src/test-mcp.ts",
