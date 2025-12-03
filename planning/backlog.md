@@ -2,18 +2,9 @@
 
 ## Planned
 
-### Critical: Production Safety Nets
-- [ ] TECH-E2E-PROTOCOL: Developer validates MCP protocol compliance end-to-end
-- [ ] TECH-INTEGRATION-MIRO: Developer validates live Miro API integration works
-- [ ] TECH-OAUTH-RACE: System refreshes OAuth tokens safely under concurrent requests
-- [ ] TECH-DEPS-PINNED: Team deploys with reproducible builds using pinned dependencies
-
-### High: Quick Wins & Blocking Workflows
-- [ ] TECH1: Developer generates tree diagrams at scale without timeout (30s → 2s)
+### High: Feature Capabilities
 - [ ] CAP-BOARD-SYNC: Agent AI retrieves complete board state in single request
 - [ ] CAP-BATCH-UPDATE: Agent AI updates multiple board items atomically
-- [ ] TECH4: Developer works with clean production builds (no duplicate outputs)
-- [ ] TECH5: Developer navigates layout code without dead conditional branches
 
 ### Medium: Quality & Performance
 - [ ] TECH6: Agent AI responds instantly for repeated board searches (caching)
@@ -41,6 +32,19 @@
 (currently empty)
 
 ## Completed
+
+### Phase 1: Critical Safety Nets (2025-12-03)
+- [x] TECH-E2E-PROTOCOL: Developer validates MCP protocol compliance end-to-end ✅ 2025-12-03
+- [x] TECH-INTEGRATION-MIRO: Developer validates live Miro API integration works ✅ 2025-12-03
+- [x] TECH-OAUTH-RACE: System refreshes OAuth tokens safely under concurrent requests ✅ 2025-12-03
+- [x] TECH-DEPS-PINNED: Team deploys with reproducible builds using pinned dependencies ✅ 2025-12-03
+
+### Phase 2: Quick Wins (2025-12-03)
+- [x] TECH1: Developer generates tree diagrams at scale without timeout (30s → 2s) ✅ 2025-12-03
+- [x] TECH4: Developer works with clean production builds (no duplicate outputs) ✅ 2025-12-03
+- [x] TECH5: Developer navigates source code without debug/test pollution ✅ 2025-12-03
+
+### Previous Deliveries
 - [x] TOOL1: Agent AI creates hierarchical tree diagrams on Miro ✅ 2025-11-26
 - [x] TOOL2: Agent AI creates org charts with photos ✅ 2025-11-26
 - [x] TOOL3: Agent AI creates mind maps ✅ 2025-11-26
