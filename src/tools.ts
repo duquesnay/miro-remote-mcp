@@ -3,6 +3,84 @@ import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js';
 import { BatchCreator } from './layouts/batch-creator.js';
 import { LayoutOptions } from './layouts/types.js';
 
+// Common schema definitions to eliminate duplication
+const SCHEMAS = {
+  BOARD_ID: {
+    type: 'string' as const,
+    description: 'The ID of the board',
+  },
+  ITEM_ID: {
+    type: 'string' as const,
+    description: 'The ID of the item',
+  },
+  CONTENT: {
+    type: 'string' as const,
+    description: 'HTML content',
+  },
+  X: {
+    type: 'number' as const,
+    description: 'X coordinate (default: 0)',
+  },
+  Y: {
+    type: 'number' as const,
+    description: 'Y coordinate (default: 0)',
+  },
+  WIDTH: {
+    type: 'number' as const,
+    description: 'Width in pixels',
+  },
+  HEIGHT: {
+    type: 'number' as const,
+    description: 'Height in pixels',
+  },
+  PARENT_ID: {
+    type: 'string' as const,
+    description: 'Optional ID of parent frame to place this item inside',
+  },
+  FILL_COLOR: {
+    type: 'string' as const,
+    description: 'Fill color',
+  },
+  BORDER_COLOR: {
+    type: 'string' as const,
+    description: 'Border color',
+  },
+  BORDER_WIDTH: {
+    type: 'string' as const,
+    description: 'Border width',
+  },
+  STROKE_COLOR: {
+    type: 'string' as const,
+    description: 'Line color',
+  },
+  STROKE_WIDTH: {
+    type: 'string' as const,
+    description: 'Line width',
+  },
+  FONT_FAMILY: {
+    type: 'string' as const,
+    description: 'Font family (e.g., "open_sans", "arial", "noto_sans")',
+  },
+  FONT_SIZE: {
+    type: 'string' as const,
+    description: 'Font size as string (e.g., "14", "24", "36")',
+  },
+  TEXT_COLOR: {
+    type: 'string' as const,
+    description: 'Text color in hex format (e.g., "#1a1a1a")',
+  },
+  SHAPE_TYPE: {
+    type: 'string' as const,
+    description: 'Type of shape to create',
+    enum: ['rectangle', 'circle', 'triangle', 'rhombus', 'parallelogram', 'trapezoid', 'pentagon', 'hexagon', 'octagon', 'wedge_round_rectangle_callout', 'star', 'flow_chart_predefined_process', 'cloud', 'cross', 'can', 'right_arrow', 'left_arrow', 'left_right_arrow', 'left_brace', 'right_brace'] as const,
+  },
+  END_STROKE_CAP: {
+    type: 'string' as const,
+    description: 'End cap style',
+    enum: ['none', 'stealth', 'rounded_stealth', 'diamond', 'filled_diamond', 'oval', 'filled_oval', 'arrow', 'triangle', 'filled_triangle', 'erd_one', 'erd_many', 'erd_only_one', 'erd_zero_or_one', 'erd_one_or_many', 'erd_zero_or_many'] as const,
+  },
+} as const;
+
 export const TOOL_DEFINITIONS = [
   // Authentication
   {
@@ -31,10 +109,7 @@ export const TOOL_DEFINITIONS = [
     inputSchema: {
       type: 'object',
       properties: {
-        board_id: {
-          type: 'string',
-          description: 'The ID of the board to retrieve',
-        },
+        board_id: SCHEMAS.BOARD_ID,
       },
       required: ['board_id'],
     },
@@ -63,10 +138,7 @@ export const TOOL_DEFINITIONS = [
     inputSchema: {
       type: 'object',
       properties: {
-        board_id: {
-          type: 'string',
-          description: 'The ID of the board to sync',
-        },
+        board_id: SCHEMAS.BOARD_ID,
       },
       required: ['board_id'],
     },
@@ -79,10 +151,7 @@ export const TOOL_DEFINITIONS = [
     inputSchema: {
       type: 'object',
       properties: {
-        board_id: {
-          type: 'string',
-          description: 'The ID of the board',
-        },
+        board_id: SCHEMAS.BOARD_ID,
         type: {
           type: 'string',
           description: 'Optional item type filter (frame, sticky_note, shape, text)',
@@ -98,10 +167,7 @@ export const TOOL_DEFINITIONS = [
     inputSchema: {
       type: 'object',
       properties: {
-        board_id: {
-          type: 'string',
-          description: 'The ID of the board',
-        },
+        board_id: SCHEMAS.BOARD_ID,
         query: {
           type: 'string',
           description: 'Text to search for in item content/titles',
@@ -121,14 +187,8 @@ export const TOOL_DEFINITIONS = [
     inputSchema: {
       type: 'object',
       properties: {
-        board_id: {
-          type: 'string',
-          description: 'The ID of the board',
-        },
-        item_id: {
-          type: 'string',
-          description: 'The ID of the item',
-        },
+        board_id: SCHEMAS.BOARD_ID,
+        item_id: SCHEMAS.ITEM_ID,
       },
       required: ['board_id', 'item_id'],
     },
@@ -139,14 +199,8 @@ export const TOOL_DEFINITIONS = [
     inputSchema: {
       type: 'object',
       properties: {
-        board_id: {
-          type: 'string',
-          description: 'The ID of the board',
-        },
-        item_id: {
-          type: 'string',
-          description: 'The ID of the item',
-        },
+        board_id: SCHEMAS.BOARD_ID,
+        item_id: SCHEMAS.ITEM_ID,
         updates: {
           type: 'object',
           description: 'Object containing properties to update (data, style, position, geometry)',
@@ -161,14 +215,8 @@ export const TOOL_DEFINITIONS = [
     inputSchema: {
       type: 'object',
       properties: {
-        board_id: {
-          type: 'string',
-          description: 'The ID of the board',
-        },
-        item_id: {
-          type: 'string',
-          description: 'The ID of the item to delete',
-        },
+        board_id: SCHEMAS.BOARD_ID,
+        item_id: SCHEMAS.ITEM_ID,
       },
       required: ['board_id', 'item_id'],
     },
@@ -179,10 +227,7 @@ export const TOOL_DEFINITIONS = [
     inputSchema: {
       type: 'object',
       properties: {
-        board_id: {
-          type: 'string',
-          description: 'The ID of the board',
-        },
+        board_id: SCHEMAS.BOARD_ID,
         updates: {
           type: 'array',
           description: 'Array of item updates (max 50 items)',
@@ -197,8 +242,8 @@ export const TOOL_DEFINITIONS = [
                 type: 'object',
                 description: 'Position update (x, y coordinates)',
                 properties: {
-                  x: { type: 'number' },
-                  y: { type: 'number' },
+                  x: SCHEMAS.X,
+                  y: SCHEMAS.Y,
                 },
               },
               style: {
@@ -213,8 +258,8 @@ export const TOOL_DEFINITIONS = [
                 type: 'object',
                 description: 'Geometry update (width, height, rotation)',
                 properties: {
-                  width: { type: 'number' },
-                  height: { type: 'number' },
+                  width: SCHEMAS.WIDTH,
+                  height: SCHEMAS.HEIGHT,
                   rotation: { type: 'number' },
                 },
               },
@@ -234,30 +279,12 @@ export const TOOL_DEFINITIONS = [
     inputSchema: {
       type: 'object',
       properties: {
-        board_id: {
-          type: 'string',
-          description: 'The ID of the board',
-        },
-        content: {
-          type: 'string',
-          description: 'HTML content for the sticky note',
-        },
-        x: {
-          type: 'number',
-          description: 'X coordinate (default: 0)',
-        },
-        y: {
-          type: 'number',
-          description: 'Y coordinate (default: 0)',
-        },
-        width: {
-          type: 'number',
-          description: 'Width in pixels (default: 200)',
-        },
-        height: {
-          type: 'number',
-          description: 'Height in pixels (default: 200)',
-        },
+        board_id: SCHEMAS.BOARD_ID,
+        content: SCHEMAS.CONTENT,
+        x: SCHEMAS.X,
+        y: SCHEMAS.Y,
+        width: SCHEMAS.WIDTH,
+        height: SCHEMAS.HEIGHT,
         color: {
           type: 'string',
           description: 'Fill color (default: light_yellow)',
@@ -268,10 +295,7 @@ export const TOOL_DEFINITIONS = [
           description: 'Shape type (default: square)',
           enum: ['square', 'rectangle'],
         },
-        parent_id: {
-          type: 'string',
-          description: 'Optional ID of parent frame to place this sticky note inside',
-        },
+        parent_id: SCHEMAS.PARENT_ID,
       },
       required: ['board_id', 'content'],
     },
@@ -282,63 +306,20 @@ export const TOOL_DEFINITIONS = [
     inputSchema: {
       type: 'object',
       properties: {
-        board_id: {
-          type: 'string',
-          description: 'The ID of the board',
-        },
-        content: {
-          type: 'string',
-          description: 'HTML content for the shape',
-        },
-        shape_type: {
-          type: 'string',
-          description: 'Type of shape to create',
-          enum: ['rectangle', 'circle', 'triangle', 'rhombus', 'parallelogram', 'trapezoid', 'pentagon', 'hexagon', 'octagon', 'wedge_round_rectangle_callout', 'star', 'flow_chart_predefined_process', 'cloud', 'cross', 'can', 'right_arrow', 'left_arrow', 'left_right_arrow', 'left_brace', 'right_brace'],
-        },
-        x: {
-          type: 'number',
-          description: 'X coordinate (default: 0)',
-        },
-        y: {
-          type: 'number',
-          description: 'Y coordinate (default: 0)',
-        },
-        width: {
-          type: 'number',
-          description: 'Width in pixels (default: 300)',
-        },
-        height: {
-          type: 'number',
-          description: 'Height in pixels (default: 150)',
-        },
-        fill_color: {
-          type: 'string',
-          description: 'Fill color (default: light_blue)',
-        },
-        border_color: {
-          type: 'string',
-          description: 'Border color (default: blue)',
-        },
-        border_width: {
-          type: 'string',
-          description: 'Border width (default: "2")',
-        },
-        font_family: {
-          type: 'string',
-          description: 'Font family (e.g., "open_sans", "arial", "noto_sans")',
-        },
-        font_size: {
-          type: 'string',
-          description: 'Font size as string (e.g., "14", "24", "36")',
-        },
-        text_color: {
-          type: 'string',
-          description: 'Text color in hex format (e.g., "#1a1a1a")',
-        },
-        parent_id: {
-          type: 'string',
-          description: 'Optional ID of parent frame to place this shape inside',
-        },
+        board_id: SCHEMAS.BOARD_ID,
+        content: SCHEMAS.CONTENT,
+        shape_type: SCHEMAS.SHAPE_TYPE,
+        x: SCHEMAS.X,
+        y: SCHEMAS.Y,
+        width: SCHEMAS.WIDTH,
+        height: SCHEMAS.HEIGHT,
+        fill_color: SCHEMAS.FILL_COLOR,
+        border_color: SCHEMAS.BORDER_COLOR,
+        border_width: SCHEMAS.BORDER_WIDTH,
+        font_family: SCHEMAS.FONT_FAMILY,
+        font_size: SCHEMAS.FONT_SIZE,
+        text_color: SCHEMAS.TEXT_COLOR,
+        parent_id: SCHEMAS.PARENT_ID,
       },
       required: ['board_id', 'content', 'shape_type'],
     },
@@ -349,47 +330,20 @@ export const TOOL_DEFINITIONS = [
     inputSchema: {
       type: 'object',
       properties: {
-        board_id: {
-          type: 'string',
-          description: 'The ID of the board',
-        },
-        content: {
-          type: 'string',
-          description: 'HTML content for the text',
-        },
-        x: {
-          type: 'number',
-          description: 'X coordinate (default: 0)',
-        },
-        y: {
-          type: 'number',
-          description: 'Y coordinate (default: 0)',
-        },
-        width: {
-          type: 'number',
-          description: 'Width in pixels (default: 300)',
-        },
-        font_family: {
-          type: 'string',
-          description: 'Font family (e.g., "open_sans", "arial", "noto_sans")',
-        },
-        font_size: {
-          type: 'string',
-          description: 'Font size as string (e.g., "14", "24", "36")',
-        },
-        text_color: {
-          type: 'string',
-          description: 'Text color in hex format (e.g., "#1a1a1a")',
-        },
+        board_id: SCHEMAS.BOARD_ID,
+        content: SCHEMAS.CONTENT,
+        x: SCHEMAS.X,
+        y: SCHEMAS.Y,
+        width: SCHEMAS.WIDTH,
+        font_family: SCHEMAS.FONT_FAMILY,
+        font_size: SCHEMAS.FONT_SIZE,
+        text_color: SCHEMAS.TEXT_COLOR,
         text_align: {
           type: 'string',
           description: 'Text alignment (left, center, right)',
           enum: ['left', 'center', 'right'],
         },
-        parent_id: {
-          type: 'string',
-          description: 'Optional ID of parent frame to place this text inside',
-        },
+        parent_id: SCHEMAS.PARENT_ID,
       },
       required: ['board_id', 'content'],
     },
@@ -400,34 +354,16 @@ export const TOOL_DEFINITIONS = [
     inputSchema: {
       type: 'object',
       properties: {
-        board_id: {
-          type: 'string',
-          description: 'The ID of the board',
-        },
+        board_id: SCHEMAS.BOARD_ID,
         title: {
           type: 'string',
           description: 'Title of the frame',
         },
-        x: {
-          type: 'number',
-          description: 'X coordinate (default: 0)',
-        },
-        y: {
-          type: 'number',
-          description: 'Y coordinate (default: 0)',
-        },
-        width: {
-          type: 'number',
-          description: 'Width in pixels (default: 1000)',
-        },
-        height: {
-          type: 'number',
-          description: 'Height in pixels (default: 800)',
-        },
-        fill_color: {
-          type: 'string',
-          description: 'Fill color (default: light_gray)',
-        },
+        x: SCHEMAS.X,
+        y: SCHEMAS.Y,
+        width: SCHEMAS.WIDTH,
+        height: SCHEMAS.HEIGHT,
+        fill_color: SCHEMAS.FILL_COLOR,
       },
       required: ['board_id', 'title'],
     },
@@ -440,10 +376,7 @@ export const TOOL_DEFINITIONS = [
     inputSchema: {
       type: 'object',
       properties: {
-        board_id: {
-          type: 'string',
-          description: 'The ID of the board',
-        },
+        board_id: SCHEMAS.BOARD_ID,
         items: {
           type: 'array',
           description: 'Array of sticky notes to create',
@@ -470,7 +403,7 @@ export const TOOL_DEFINITIONS = [
         cols: { type: 'number', description: 'Grid columns (auto-calculated if omitted)' },
         radius: { type: 'number', description: 'Radial layout radius (default: 300)' },
         orientation: { type: 'string', enum: ['vertical', 'horizontal'], description: 'Tree orientation (default: vertical)' },
-        parent_id: { type: 'string', description: 'Optional parent frame ID' },
+        parent_id: SCHEMAS.PARENT_ID,
       },
       required: ['board_id', 'items', 'layout'],
     },
@@ -481,10 +414,7 @@ export const TOOL_DEFINITIONS = [
     inputSchema: {
       type: 'object',
       properties: {
-        board_id: {
-          type: 'string',
-          description: 'The ID of the board',
-        },
+        board_id: SCHEMAS.BOARD_ID,
         items: {
           type: 'array',
           description: 'Array of shapes to create',
@@ -515,7 +445,7 @@ export const TOOL_DEFINITIONS = [
         cols: { type: 'number', description: 'Grid columns (auto-calculated if omitted)' },
         radius: { type: 'number', description: 'Radial layout radius (default: 300)' },
         orientation: { type: 'string', enum: ['vertical', 'horizontal'], description: 'Tree orientation' },
-        parent_id: { type: 'string', description: 'Optional parent frame ID' },
+        parent_id: SCHEMAS.PARENT_ID,
       },
       required: ['board_id', 'items', 'shape_type', 'layout'],
     },
@@ -526,10 +456,7 @@ export const TOOL_DEFINITIONS = [
     inputSchema: {
       type: 'object',
       properties: {
-        board_id: {
-          type: 'string',
-          description: 'The ID of the board',
-        },
+        board_id: SCHEMAS.BOARD_ID,
         items: {
           type: 'array',
           description: 'Array of text items to create',
@@ -554,7 +481,7 @@ export const TOOL_DEFINITIONS = [
         cols: { type: 'number', description: 'Grid columns (auto-calculated if omitted)' },
         radius: { type: 'number', description: 'Radial layout radius (default: 300)' },
         orientation: { type: 'string', enum: ['vertical', 'horizontal'], description: 'Tree orientation' },
-        parent_id: { type: 'string', description: 'Optional parent frame ID' },
+        parent_id: SCHEMAS.PARENT_ID,
       },
       required: ['board_id', 'items', 'layout'],
     },
@@ -567,10 +494,7 @@ export const TOOL_DEFINITIONS = [
     inputSchema: {
       type: 'object',
       properties: {
-        board_id: {
-          type: 'string',
-          description: 'The ID of the board',
-        },
+        board_id: SCHEMAS.BOARD_ID,
         start_item_id: {
           type: 'string',
           description: 'ID of the starting item',
@@ -579,19 +503,9 @@ export const TOOL_DEFINITIONS = [
           type: 'string',
           description: 'ID of the ending item',
         },
-        stroke_color: {
-          type: 'string',
-          description: 'Line color (default: blue)',
-        },
-        stroke_width: {
-          type: 'string',
-          description: 'Line width (default: "2")',
-        },
-        end_stroke_cap: {
-          type: 'string',
-          description: 'End cap style (default: arrow)',
-          enum: ['none', 'stealth', 'rounded_stealth', 'diamond', 'filled_diamond', 'oval', 'filled_oval', 'arrow', 'triangle', 'filled_triangle', 'erd_one', 'erd_many', 'erd_only_one', 'erd_zero_or_one', 'erd_one_or_many', 'erd_zero_or_many'],
-        },
+        stroke_color: SCHEMAS.STROKE_COLOR,
+        stroke_width: SCHEMAS.STROKE_WIDTH,
+        end_stroke_cap: SCHEMAS.END_STROKE_CAP,
         caption: {
           type: 'string',
           description: 'Optional caption text for the connector',
@@ -606,27 +520,14 @@ export const TOOL_DEFINITIONS = [
     inputSchema: {
       type: 'object',
       properties: {
-        board_id: {
-          type: 'string',
-          description: 'The ID of the board',
-        },
+        board_id: SCHEMAS.BOARD_ID,
         connector_id: {
           type: 'string',
           description: 'ID of the connector to update',
         },
-        stroke_color: {
-          type: 'string',
-          description: 'New line color',
-        },
-        stroke_width: {
-          type: 'string',
-          description: 'New line width',
-        },
-        end_stroke_cap: {
-          type: 'string',
-          description: 'New end cap style',
-          enum: ['none', 'stealth', 'rounded_stealth', 'diamond', 'filled_diamond', 'oval', 'filled_oval', 'arrow', 'triangle', 'filled_triangle', 'erd_one', 'erd_many', 'erd_only_one', 'erd_zero_or_one', 'erd_one_or_many', 'erd_zero_or_many'],
-        },
+        stroke_color: SCHEMAS.STROKE_COLOR,
+        stroke_width: SCHEMAS.STROKE_WIDTH,
+        end_stroke_cap: SCHEMAS.END_STROKE_CAP,
       },
       required: ['board_id', 'connector_id'],
     },
