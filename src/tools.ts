@@ -93,6 +93,29 @@ export const TOOL_DEFINITIONS = [
     },
   },
   {
+    name: 'search_items',
+    description: 'Search items by content text (case-insensitive). Searches in sticky note/shape content and frame titles.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        board_id: {
+          type: 'string',
+          description: 'The ID of the board',
+        },
+        query: {
+          type: 'string',
+          description: 'Text to search for in item content/titles',
+        },
+        type: {
+          type: 'string',
+          description: 'Optional item type filter',
+          enum: ['frame', 'sticky_note', 'shape', 'text', 'connector'],
+        },
+      },
+      required: ['board_id', 'query'],
+    },
+  },
+  {
     name: 'get_item',
     description: 'Get details of a specific item on a board',
     inputSchema: {
@@ -646,6 +669,9 @@ export async function handleToolCall(name: string, args: any, miroClient: MiroCl
       // Item Operations
       case 'list_items':
         return await miroClient.listItems(args.board_id, args.type);
+
+      case 'search_items':
+        return await miroClient.searchItems(args.board_id, args.query, args.type);
 
       case 'get_item':
         return await miroClient.getItem(args.board_id, args.item_id);
