@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import https from 'https';
 import { OAuth2Manager } from './oauth.js';
-import { OAUTH_CONFIG, CACHE_CONFIG, MIRO_DEFAULTS, TOKEN_CONFIG } from './config.js';
+import { OAUTH_CONFIG, CACHE_CONFIG, MIRO_DEFAULTS, TOKEN_CONFIG, PAGINATION_CONFIG } from './config.js';
 import { classifyAxiosError, formatDiagnosticError } from './errors.js';
 
 // Color mapping: named colors to hex (shapes require hex, sticky notes accept names)
@@ -257,7 +257,7 @@ export class MiroClient {
     let cursor: string | undefined;
 
     do {
-      const params: Record<string, string> = { limit: '50' };
+      const params: Record<string, string> = { limit: PAGINATION_CONFIG.ITEMS_PER_PAGE.toString() };
       if (type) params.type = type;
       if (cursor) params.cursor = cursor;
 
@@ -645,7 +645,7 @@ export class MiroClient {
     let cursor: string | undefined;
 
     do {
-      const params: Record<string, string> = { limit: '50' };
+      const params: Record<string, string> = { limit: PAGINATION_CONFIG.ITEMS_PER_PAGE.toString() };
       if (cursor) params.cursor = cursor;
 
       const response = await this.client.get(`/boards/${boardId}/connectors`, { params });
