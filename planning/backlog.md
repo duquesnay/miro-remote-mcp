@@ -26,7 +26,7 @@
 - [ ] CAP-COMMENTS: User adds contextual comments to board items
 
 ## In Progress
-(currently empty)
+- [ ] BUG-GEOMETRY-UPDATE: Agent AI modifies item dimensions (width/height) successfully
 
 ## Completed
 

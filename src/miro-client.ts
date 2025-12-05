@@ -274,6 +274,20 @@ export class MiroClient {
     return items;
   }
 
+  /**
+   * Find item type from cache (avoids API call if item was recently listed)
+   */
+  private findItemTypeInCache(boardId: string, itemId: string): string | null {
+    const now = Date.now();
+    for (const [key, cached] of this.itemCache.entries()) {
+      if (key.startsWith(`${boardId}:`) && cached.expiresAt > now) {
+        const item = cached.data.find((i) => i.id === itemId);
+        if (item) return item.type;
+      }
+    }
+    return null;
+  }
+
   private invalidateItemCache(boardId: string): void {
     // Remove all cache entries for this board (all type filters)
     for (const key of this.itemCache.keys()) {
@@ -299,7 +313,46 @@ export class MiroClient {
     return response.data;
   }
 
+  /**
+   * Update item properties (position, content, style, geometry)
+   *
+   * Note: Geometry changes (width, height, rotation) require type-specific endpoints.
+   * If geometry is being updated, this method automatically fetches the item type
+   * and uses the appropriate endpoint (shapes, sticky_notes, texts, frames).
+   */
   async updateItem(boardId: string, itemId: string, updates: Partial<MiroItem>): Promise<MiroItem> {
+    // Check if geometry is being updated
+    const hasGeometryUpdate = updates.geometry !== undefined;
+
+    if (hasGeometryUpdate) {
+      // Geometry updates require type-specific endpoints
+      // Try cache first, fall back to API call
+      let itemType = this.findItemTypeInCache(boardId, itemId);
+      if (!itemType) {
+        const item = await this.getItem(boardId, itemId);
+        itemType = item.type;
+      }
+
+      // Map item type to endpoint path
+      const typeToEndpoint: Record<string, string> = {
+        'shape': 'shapes',
+        'sticky_note': 'sticky_notes',
+        'text': 'texts',
+        'frame': 'frames',
+      };
+
+      const endpoint = typeToEndpoint[itemType];
+      if (!endpoint) {
+        throw new Error(`Cannot update geometry for item type: ${itemType}`);
+      }
+
+      // Use type-specific endpoint for geometry updates
+      const response = await this.client.patch(`/boards/${boardId}/${endpoint}/${itemId}`, updates);
+      this.invalidateItemCache(boardId);
+      return response.data;
+    }
+
+    // For non-geometry updates, use generic endpoint
     const response = await this.client.patch(`/boards/${boardId}/items/${itemId}`, updates);
     this.invalidateItemCache(boardId);
     return response.data;
