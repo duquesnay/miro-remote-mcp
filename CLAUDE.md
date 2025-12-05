@@ -16,11 +16,32 @@
 - Items added to a frame inherit its layer index
 - Creation order = default stacking order
 
+**Puppeteer Bridge Exploration (2025-12-05)**:
+- **Spike conclusion**: NOT feasible for production
+- **Critical blocker**: OAuth token incompatibility (API tokens ≠ browser session)
+- **Performance**: Browser cold start ~3s (unacceptable for MCP operations)
+- **Alternative**: Document limitation, focus on other MCP features
+- See: `spikes/sdk-bridge/README.md` for full analysis
+
 **Sources:**
 - [Sticky Note Font Size](https://community.miro.com/developer-platform-forum-57/sticky-note-font-size-3958)
 - [Z-Index API Discussion](https://community.miro.com/developer-platform-forum-57/z-index-api-3456)
 
 ## Project Learnings
+
+### 2025-12-05 - Puppeteer SDK Bridge Spike (NO-GO)
+
+**Methodological: Auth-First Spike Testing**
+When exploring unfamiliar technology integration, test authentication FIRST. Auth architecture mismatches are often deal-breakers that invalidate entire technical approaches. 90 minutes to discover fundamental blocker is far better than 40 hours building a doomed solution.
+
+**Technical: OAuth Token Context Separation**
+Miro's REST API OAuth tokens are completely separate from browser session auth. No token exchange mechanism exists. This is a common pattern across many services - API tokens ≠ web session tokens. Cannot bridge REST API authentication to browser automation without requiring users to login interactively in headless browser.
+
+**Technical: Puppeteer Performance Baseline**
+Browser cold start: ~3 seconds on modern Mac. Even with browser reuse, navigation + SDK access adds 2-5 seconds. Total operation time: 5-8 seconds - unacceptable for MCP operations which should complete in <500ms for good UX.
+
+**Decision: Document Limitation**
+Z-index control via MCP is not feasible. Clean separation - MCP for automation (creation, updates, batch operations), manual UI for visual refinement (z-index). User impact is minimal as z-index is visual polish, not core functionality.
 
 ### 2025-11-26 - Docker Registry-Based Deployment Implementation
 
