@@ -45,7 +45,7 @@ describe('errors', () => {
       expect(diagnostic.suggestion.length).toBeGreaterThan(0);
     });
 
-    it('classifies 401 as AUTH_ERROR with renewal suggestion', () => {
+    it('classifies 401 as AUTH_ERROR with authorize_url suggestion', () => {
       const axiosError = createMockAxiosError(401, {
         message: 'Token expired',
         type: 'invalid_token',
@@ -54,7 +54,7 @@ describe('errors', () => {
 
       expect(diagnostic.type).toBe(DiagnosticErrorType.AUTH_ERROR);
       expect(diagnostic.statusCode).toBe(401);
-      expect(diagnostic.suggestion).toMatch(/oauth|auth|token/i);
+      expect(diagnostic.suggestion).toContain('authorize_url');
     });
 
     it('classifies 403 as AUTH_ERROR with permission suggestion', () => {

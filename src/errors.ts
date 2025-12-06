@@ -62,7 +62,7 @@ export function classifyAxiosError(error: AxiosError): DiagnosticError {
       type: DiagnosticErrorType.AUTH_ERROR,
       message: apiMessage || 'Authentication failed',
       statusCode: 401,
-      suggestion: 'Token may be expired. Run: npm run oauth to refresh authentication.',
+      suggestion: 'Token may be expired. See authorize_url in error response to reauthenticate.',
       details: { apiResponse: data },
     };
   }
