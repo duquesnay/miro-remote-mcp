@@ -30,6 +30,7 @@
 
 ## Bug fixes (2025-12-06)
 - [x] BUG-GEOMETRY-UPDATE: Agent AI modifies item dimensions (width/height) successfully ✅ 2025-12-06
+- [x] BUG-PAGINATION-LIMIT: Agent AI lists board items without HTTP 400 errors ✅ 2025-12-06
 
 ## Completed
 
