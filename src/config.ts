@@ -35,8 +35,9 @@ export const CACHE_CONFIG = {
 
 // Pagination Configuration
 export const PAGINATION_CONFIG = {
-  // Items per page for API pagination (optimized for 20-30% faster fetches)
-  ITEMS_PER_PAGE: 100,
+  // Items per page for API pagination
+  // Note: Miro API max limit is 50 for /items endpoint (100 causes HTTP 400)
+  ITEMS_PER_PAGE: 50,
 };
 
 // Layout Defaults
