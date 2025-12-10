@@ -253,6 +253,92 @@ function syncResultToToon(result: {
 }
 
 /**
+ * Format write operation result (single item, array, or batch result object)
+ * @param result Single MiroItem, array of MiroItems, or batch result object
+ * @param format Field filtering level
+ * @param outputFormat Serialization format (json or toon)
+ * @param operationType Optional operation type for TOON header (e.g., 'created', 'updated')
+ */
+export function formatWriteResult(
+  result: any,
+  format: ItemFormat = 'minimal',
+  outputFormat: OutputFormat = 'json',
+  operationType?: string
+): any {
+  // Handle batch result objects (from batchUpdateItems or batch creators)
+  if (result && typeof result === 'object' && !Array.isArray(result) && 'results' in result) {
+    // Extract items from batch update result
+    const items = result.results
+      .filter((r: any) => r.status === 'success' && r.item)
+      .map((r: any) => r.item);
+
+    if (outputFormat === 'json') {
+      return {
+        ...result,
+        results: result.results.map((r: any) =>
+          r.item ? { ...r, item: filterItem(r.item, format) } : r
+        ),
+      };
+    }
+
+    // TOON format for batch results
+    const lines: string[] = [];
+    if (items.length > 0) {
+      const itemType = items[0].type;
+      lines.push(`# ${operationType || 'batch'} ${items.length} ${itemType}${items.length > 1 ? 's' : ''}`);
+      items.forEach((item: MiroItem) => lines.push(itemToToon(item)));
+    }
+    return lines.join('\n');
+  }
+
+  // Handle BatchCreationResult (from batch creators)
+  if (result && typeof result === 'object' && !Array.isArray(result) && 'items' in result && 'summary' in result) {
+    // For batch creation results, we don't have full MiroItem objects, just IDs
+    // Return the structured result as-is for JSON, or a summary for TOON
+    if (outputFormat === 'json') {
+      return result;
+    }
+
+    // TOON format for batch creation
+    const lines: string[] = [];
+    lines.push(`# ${operationType || 'created'} ${result.summary.created} items`);
+    result.items.forEach((item: any) => lines.push(`${item.type}|${item.id}`));
+    if (result.summary.failed > 0) {
+      lines.push(`# ${result.summary.failed} failed`);
+    }
+    return lines.join('\n');
+  }
+
+  // Handle single item or array of items
+  const isArray = Array.isArray(result);
+  const items = isArray ? result : [result];
+
+  // Apply format filtering for JSON output
+  if (outputFormat === 'json') {
+    const filtered = items.map(item => filterItem(item, format));
+    return isArray ? filtered : filtered[0];
+  }
+
+  // TOON format
+  const lines: string[] = [];
+
+  // Add header for TOON format
+  if (items.length > 0) {
+    const itemType = items[0].type;
+    if (operationType) {
+      if (isArray) {
+        lines.push(`# ${operationType} ${items.length} ${itemType}${items.length > 1 ? 's' : ''}`);
+      } else {
+        lines.push(`# ${operationType} ${itemType}`);
+      }
+    }
+    items.forEach(item => lines.push(itemToToon(item)));
+  }
+
+  return lines.join('\n');
+}
+
+/**
  * Miro API Client with automatic rate limit management
  *
  * Rate Limiting Strategy:

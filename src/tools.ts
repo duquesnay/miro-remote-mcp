@@ -1,4 +1,4 @@
-import { MiroClient } from './miro-client.js';
+import { MiroClient, formatWriteResult } from './miro-client.js';
 import { McpError, ErrorCode } from '@modelcontextprotocol/sdk/types.js';
 import { BatchCreator } from './layouts/batch-creator.js';
 import { LayoutOptions } from './layouts/types.js';
@@ -78,6 +78,16 @@ const SCHEMAS = {
     type: 'string' as const,
     description: 'End cap style',
     enum: ['none', 'stealth', 'rounded_stealth', 'diamond', 'filled_diamond', 'oval', 'filled_oval', 'arrow', 'triangle', 'filled_triangle', 'erd_one', 'erd_many', 'erd_only_one', 'erd_zero_or_one', 'erd_one_or_many', 'erd_zero_or_many'] as const,
+  },
+  FORMAT: {
+    type: 'string' as const,
+    description: 'Output detail level (default: minimal)',
+    enum: ['minimal', 'standard', 'full'] as const,
+  },
+  OUTPUT_FORMAT: {
+    type: 'string' as const,
+    description: 'Output format (default: json). Use toon for compact text representation (~40% additional reduction)',
+    enum: ['json', 'toon'] as const,
   },
 } as const;
 
@@ -230,6 +240,8 @@ export const TOOL_DEFINITIONS = [
           type: 'object',
           description: 'Object containing properties to update (data, style, position, geometry)',
         },
+        format: SCHEMAS.FORMAT,
+        output_format: SCHEMAS.OUTPUT_FORMAT,
       },
       required: ['board_id', 'item_id', 'updates'],
     },
@@ -292,6 +304,8 @@ export const TOOL_DEFINITIONS = [
             required: ['id'],
           },
         },
+        format: SCHEMAS.FORMAT,
+        output_format: SCHEMAS.OUTPUT_FORMAT,
       },
       required: ['board_id', 'updates'],
     },
@@ -321,6 +335,8 @@ export const TOOL_DEFINITIONS = [
           enum: ['square', 'rectangle'],
         },
         parent_id: SCHEMAS.PARENT_ID,
+        format: SCHEMAS.FORMAT,
+        output_format: SCHEMAS.OUTPUT_FORMAT,
       },
       required: ['board_id', 'content'],
     },
@@ -345,6 +361,8 @@ export const TOOL_DEFINITIONS = [
         font_size: SCHEMAS.FONT_SIZE,
         text_color: SCHEMAS.TEXT_COLOR,
         parent_id: SCHEMAS.PARENT_ID,
+        format: SCHEMAS.FORMAT,
+        output_format: SCHEMAS.OUTPUT_FORMAT,
       },
       required: ['board_id', 'content', 'shape_type'],
     },
@@ -369,6 +387,8 @@ export const TOOL_DEFINITIONS = [
           enum: ['left', 'center', 'right'],
         },
         parent_id: SCHEMAS.PARENT_ID,
+        format: SCHEMAS.FORMAT,
+        output_format: SCHEMAS.OUTPUT_FORMAT,
       },
       required: ['board_id', 'content'],
     },
@@ -389,6 +409,8 @@ export const TOOL_DEFINITIONS = [
         width: SCHEMAS.WIDTH,
         height: SCHEMAS.HEIGHT,
         fill_color: SCHEMAS.FILL_COLOR,
+        format: SCHEMAS.FORMAT,
+        output_format: SCHEMAS.OUTPUT_FORMAT,
       },
       required: ['board_id', 'title'],
     },
@@ -429,6 +451,8 @@ export const TOOL_DEFINITIONS = [
         radius: { type: 'number', description: 'Radial layout radius (default: 300)' },
         orientation: { type: 'string', enum: ['vertical', 'horizontal'], description: 'Tree orientation (default: vertical)' },
         parent_id: SCHEMAS.PARENT_ID,
+        format: SCHEMAS.FORMAT,
+        output_format: SCHEMAS.OUTPUT_FORMAT,
       },
       required: ['board_id', 'items', 'layout'],
     },
@@ -471,6 +495,8 @@ export const TOOL_DEFINITIONS = [
         radius: { type: 'number', description: 'Radial layout radius (default: 300)' },
         orientation: { type: 'string', enum: ['vertical', 'horizontal'], description: 'Tree orientation' },
         parent_id: SCHEMAS.PARENT_ID,
+        format: SCHEMAS.FORMAT,
+        output_format: SCHEMAS.OUTPUT_FORMAT,
       },
       required: ['board_id', 'items', 'shape_type', 'layout'],
     },
@@ -507,6 +533,8 @@ export const TOOL_DEFINITIONS = [
         radius: { type: 'number', description: 'Radial layout radius (default: 300)' },
         orientation: { type: 'string', enum: ['vertical', 'horizontal'], description: 'Tree orientation' },
         parent_id: SCHEMAS.PARENT_ID,
+        format: SCHEMAS.FORMAT,
+        output_format: SCHEMAS.OUTPUT_FORMAT,
       },
       required: ['board_id', 'items', 'layout'],
     },
@@ -535,6 +563,8 @@ export const TOOL_DEFINITIONS = [
           type: 'string',
           description: 'Optional caption text for the connector',
         },
+        format: SCHEMAS.FORMAT,
+        output_format: SCHEMAS.OUTPUT_FORMAT,
       },
       required: ['board_id', 'start_item_id', 'end_item_id'],
     },
@@ -602,19 +632,23 @@ export async function handleToolCall(name: string, args: any, miroClient: MiroCl
       case 'get_item':
         return await miroClient.getItem(args.board_id, args.item_id);
 
-      case 'update_item':
-        return await miroClient.updateItem(args.board_id, args.item_id, args.updates);
+      case 'update_item': {
+        const result = await miroClient.updateItem(args.board_id, args.item_id, args.updates);
+        return formatWriteResult(result, args.format, args.output_format, 'updated');
+      }
 
       case 'delete_item':
         await miroClient.deleteItem(args.board_id, args.item_id);
         return { success: true, message: 'Item deleted successfully' };
 
-      case 'batch_update_items':
-        return await miroClient.batchUpdateItems(args.board_id, args.updates);
+      case 'batch_update_items': {
+        const results = await miroClient.batchUpdateItems(args.board_id, args.updates);
+        return formatWriteResult(results, args.format, args.output_format, 'updated');
+      }
 
       // Item Creation
-      case 'create_sticky_note':
-        return await miroClient.createStickyNote(args.board_id, args.content, {
+      case 'create_sticky_note': {
+        const result = await miroClient.createStickyNote(args.board_id, args.content, {
           x: args.x,
           y: args.y,
           width: args.width,
@@ -623,9 +657,11 @@ export async function handleToolCall(name: string, args: any, miroClient: MiroCl
           shape: args.shape,
           parentId: args.parent_id,
         });
+        return formatWriteResult(result, args.format, args.output_format, 'created');
+      }
 
-      case 'create_shape':
-        return await miroClient.createShape(args.board_id, args.content, args.shape_type, {
+      case 'create_shape': {
+        const result = await miroClient.createShape(args.board_id, args.content, args.shape_type, {
           x: args.x,
           y: args.y,
           width: args.width,
@@ -638,9 +674,11 @@ export async function handleToolCall(name: string, args: any, miroClient: MiroCl
           textColor: args.text_color,
           parentId: args.parent_id,
         });
+        return formatWriteResult(result, args.format, args.output_format, 'created');
+      }
 
-      case 'create_text':
-        return await miroClient.createText(args.board_id, args.content, {
+      case 'create_text': {
+        const result = await miroClient.createText(args.board_id, args.content, {
           x: args.x,
           y: args.y,
           width: args.width,
@@ -650,15 +688,19 @@ export async function handleToolCall(name: string, args: any, miroClient: MiroCl
           textAlign: args.text_align,
           parentId: args.parent_id,
         });
+        return formatWriteResult(result, args.format, args.output_format, 'created');
+      }
 
-      case 'create_frame':
-        return await miroClient.createFrame(args.board_id, args.title, {
+      case 'create_frame': {
+        const result = await miroClient.createFrame(args.board_id, args.title, {
           x: args.x,
           y: args.y,
           width: args.width,
           height: args.height,
           fillColor: args.fill_color,
         });
+        return formatWriteResult(result, args.format, args.output_format, 'created');
+      }
 
       // Batch Creation with Layouts
       case 'batch_create_sticky_notes': {
@@ -673,13 +715,14 @@ export async function handleToolCall(name: string, args: any, miroClient: MiroCl
           radius: args.radius,
           orientation: args.orientation,
         };
-        return await batchCreator.createWithLayout(
+        const results = await batchCreator.createWithLayout(
           args.board_id,
           args.items,
           'sticky_note',
           layoutOptions,
           { parentId: args.parent_id }
         );
+        return formatWriteResult(results, args.format, args.output_format, 'created');
       }
 
       case 'batch_create_shapes': {
@@ -694,13 +737,14 @@ export async function handleToolCall(name: string, args: any, miroClient: MiroCl
           radius: args.radius,
           orientation: args.orientation,
         };
-        return await batchCreator.createWithLayout(
+        const results = await batchCreator.createWithLayout(
           args.board_id,
           args.items,
           'shape',
           layoutOptions,
           { parentId: args.parent_id, shapeType: args.shape_type }
         );
+        return formatWriteResult(results, args.format, args.output_format, 'created');
       }
 
       case 'batch_create_text': {
@@ -715,18 +759,19 @@ export async function handleToolCall(name: string, args: any, miroClient: MiroCl
           radius: args.radius,
           orientation: args.orientation,
         };
-        return await batchCreator.createWithLayout(
+        const results = await batchCreator.createWithLayout(
           args.board_id,
           args.items,
           'text',
           layoutOptions,
           { parentId: args.parent_id }
         );
+        return formatWriteResult(results, args.format, args.output_format, 'created');
       }
 
       // Connectors
-      case 'create_connector':
-        return await miroClient.createConnector(
+      case 'create_connector': {
+        const result = await miroClient.createConnector(
           args.board_id,
           args.start_item_id,
           args.end_item_id,
@@ -737,6 +782,8 @@ export async function handleToolCall(name: string, args: any, miroClient: MiroCl
             caption: args.caption,
           }
         );
+        return formatWriteResult(result, args.format, args.output_format, 'created');
+      }
 
       case 'update_connector':
         return await miroClient.updateConnector(args.board_id, args.connector_id, {
