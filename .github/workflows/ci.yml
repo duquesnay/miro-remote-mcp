@@ -82,17 +82,24 @@ jobs:
           username: nologin
           password: ${{ secrets.SCW_SECRET_KEY }}
 
+      # K8s-ready tagging: immutable SHA + quasi-immutable dev + semver
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: rg.fr-par.scw.cloud/fly-agile-prod/miro-mcp
           tags: |
-            type=sha,format=long
+            # Git SHA (immutable, for traceability)
+            type=sha,format=long,prefix=sha-
+            # Semver tags (production releases)
             type=semver,pattern={{version}}
-            type=match,pattern=dev-(.*),group=1
-            type=raw,value=dev,enable=${{ github.ref == 'refs/heads/main' }}
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=semver,pattern={{major}}.{{minor}}
+            # Dev tag (quasi-immutable with date+sha)
+            type=raw,value=dev-{{date 'YYYYMMDD'}}-{{sha}},enable=${{ github.ref == 'refs/heads/main' }}
+            # Latest (production only, from semver tags)
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+          flavor: |
+            latest=false
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
